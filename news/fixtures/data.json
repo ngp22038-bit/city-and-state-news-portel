@@ -1,0 +1,322 @@
+[
+  {
+    "model": "news.article",
+    "pk": 1,
+    "fields": {
+      "title": "Ahmedabad Metro Expansion Update",
+      "content": "Metro routes are expanding to new areas improving connectivity.",
+      "category": "City",
+      "city": "Ahmedabad",
+      "state": "Gujarat",
+      "author": 1,
+      "views_count": 120,
+      "is_published": true,
+      "created_at": "2026-01-01T10:00:00Z",
+      "updated_at": "2026-01-01T10:00:00Z"
+    }
+  },
+  {
+    "model": "news.article",
+    "pk": 2,
+    "fields": {
+      "title": "Surat Clean City Mission Success",
+      "content": "Surat ranks among the cleanest cities in India.",
+      "category": "City",
+      "city": "Surat",
+      "state": "Gujarat",
+      "author": 1,
+      "views_count": 140,
+      "is_published": true,
+      "created_at": "2026-01-02T10:00:00Z",
+      "updated_at": "2026-01-02T10:00:00Z"
+    }
+  },
+  {
+    "model": "news.article",
+    "pk": 3,
+    "fields": {
+      "title": "Gujarat Budget 2026 Highlights",
+      "content": "Major allocations announced for infrastructure and education.",
+      "category": "State",
+      "city": "Gandhinagar",
+      "state": "Gujarat",
+      "author": 1,
+      "views_count": 200,
+      "is_published": true,
+      "created_at": "2026-01-03T10:00:00Z",
+      "updated_at": "2026-01-03T10:00:00Z"
+    }
+  },
+  {
+    "model": "news.article",
+    "pk": 4,
+    "fields": {
+      "title": "Maharashtra New Industrial Policy",
+      "content": "Government focuses on boosting manufacturing sector.",
+      "category": "State",
+      "city": "Mumbai",
+      "state": "Maharashtra",
+      "author": 1,
+      "views_count": 180,
+      "is_published": true,
+      "created_at": "2026-01-04T10:00:00Z",
+      "updated_at": "2026-01-04T10:00:00Z"
+    }
+  },
+  {
+    "model": "news.article",
+    "pk": 5,
+    "fields": {
+      "title": "Election Rally Updates 2026",
+      "content": "Political leaders gather huge crowds ahead of elections.",
+      "category": "Politics",
+      "city": "Delhi",
+      "state": "Delhi",
+      "author": 1,
+      "views_count": 300,
+      "is_published": true,
+      "created_at": "2026-01-05T10:00:00Z",
+      "updated_at": "2026-01-05T10:00:00Z"
+    }
+  },
+  {
+    "model": "news.article",
+    "pk": 6,
+    "fields": {
+      "title": "New Policies Debate in Parliament",
+      "content": "Opposition raises concerns over new bills.",
+      "category": "Politics",
+      "city": "Delhi",
+      "state": "Delhi",
+      "author": 1,
+      "views_count": 250,
+      "is_published": true,
+      "created_at": "2026-01-06T10:00:00Z",
+      "updated_at": "2026-01-06T10:00:00Z"
+    }
+  },
+  {
+    "model": "news.article",
+    "pk": 7,
+    "fields": {
+      "title": "India Wins ODI Series",
+      "content": "Team India dominates with excellent performance.",
+      "category": "Sports",
+      "city": "Mumbai",
+      "state": "Maharashtra",
+      "author": 1,
+      "views_count": 400,
+      "is_published": true,
+      "created_at": "2026-01-07T10:00:00Z",
+      "updated_at": "2026-01-07T10:00:00Z"
+    }
+  },
+  {
+    "model": "news.article",
+    "pk": 8,
+    "fields": {
+      "title": "IPL 2026 Auction Highlights",
+      "content": "Top players sold at record prices.",
+      "category": "Sports",
+      "city": "Chennai",
+      "state": "Tamil Nadu",
+      "author": 1,
+      "views_count": 420,
+      "is_published": true,
+      "created_at": "2026-01-08T10:00:00Z",
+      "updated_at": "2026-01-08T10:00:00Z"
+    }
+  },
+  {
+    "model": "news.article",
+    "pk": 9,
+    "fields": {
+      "title": "Top Government Jobs 2026",
+      "content": "New job openings announced in multiple sectors.",
+      "category": "Jobs",
+      "city": "Delhi",
+      "state": "Delhi",
+      "author": 1,
+      "views_count": 260,
+      "is_published": true,
+      "created_at": "2026-01-09T10:00:00Z",
+      "updated_at": "2026-01-09T10:00:00Z"
+    }
+  },
+  {
+    "model": "news.article",
+    "pk": 10,
+    "fields": {
+      "title": "IT Sector Hiring Boom",
+      "content": "Tech companies are hiring aggressively in 2026.",
+      "category": "Jobs",
+      "city": "Bangalore",
+      "state": "Karnataka",
+      "author": 1,
+      "views_count": 300,
+      "is_published": true,
+      "created_at": "2026-01-10T10:00:00Z",
+      "updated_at": "2026-01-10T10:00:00Z"
+    }
+  },
+  {
+    "model": "news.article",
+    "pk": 11,
+    "fields": {
+      "title": "Navratri Festival Begins",
+      "content": "Gujarat celebrates with grand Garba nights.",
+      "category": "Events",
+      "city": "Vadodara",
+      "state": "Gujarat",
+      "author": 1,
+      "views_count": 500,
+      "is_published": true,
+      "created_at": "2026-01-11T10:00:00Z",
+      "updated_at": "2026-01-11T10:00:00Z"
+    }
+  },
+  {
+    "model": "news.article",
+    "pk": 12,
+    "fields": {
+      "title": "Diwali Celebration Guide",
+      "content": "Top places to celebrate Diwali across India.",
+      "category": "Events",
+      "city": "Jaipur",
+      "state": "Rajasthan",
+      "author": 1,
+      "views_count": 480,
+      "is_published": true,
+      "created_at": "2026-01-12T10:00:00Z",
+      "updated_at": "2026-01-12T10:00:00Z"
+    }
+  },
+  {
+    "model": "news.article",
+    "pk": 13,
+    "fields": {
+      "title": "Sensex Hits New High",
+      "content": "Stock market reaches all-time high levels.",
+      "category": "Business",
+      "city": "Mumbai",
+      "state": "Maharashtra",
+      "author": 1,
+      "views_count": 600,
+      "is_published": true,
+      "created_at": "2026-01-13T10:00:00Z",
+      "updated_at": "2026-01-13T10:00:00Z"
+    }
+  },
+  {
+    "model": "news.article",
+    "pk": 14,
+    "fields": {
+      "title": "Startup Ecosystem Growth",
+      "content": "India sees rapid startup growth in tech industry.",
+      "category": "Business",
+      "city": "Bangalore",
+      "state": "Karnataka",
+      "author": 1,
+      "views_count": 550,
+      "is_published": true,
+      "created_at": "2026-01-14T10:00:00Z",
+      "updated_at": "2026-01-14T10:00:00Z"
+    }
+  },
+  {
+    "model": "news.article",
+    "pk": 15,
+    "fields": {
+      "title": "New Education Policy Explained",
+      "content": "Major reforms introduced in Indian education.",
+      "category": "Education",
+      "city": "Delhi",
+      "state": "Delhi",
+      "author": 1,
+      "views_count": 350,
+      "is_published": true,
+      "created_at": "2026-01-15T10:00:00Z",
+      "updated_at": "2026-01-15T10:00:00Z"
+    }
+  },
+  {
+    "model": "news.article",
+    "pk": 16,
+    "fields": {
+      "title": "Online Learning Trends",
+      "content": "Students prefer online courses in 2026.",
+      "category": "Education",
+      "city": "Pune",
+      "state": "Maharashtra",
+      "author": 1,
+      "views_count": 330,
+      "is_published": true,
+      "created_at": "2026-01-16T10:00:00Z",
+      "updated_at": "2026-01-16T10:00:00Z"
+    }
+  },
+  {
+    "model": "news.article",
+    "pk": 17,
+    "fields": {
+      "title": "AI Becomes Global Trend",
+      "content": "Artificial Intelligence dominates tech industry.",
+      "category": "Trending",
+      "city": "Global",
+      "state": "Global",
+      "author": 1,
+      "views_count": 800,
+      "is_published": true,
+      "created_at": "2026-01-17T10:00:00Z",
+      "updated_at": "2026-01-17T10:00:00Z"
+    }
+  },
+  {
+    "model": "news.article",
+    "pk": 18,
+    "fields": {
+      "title": "Social Media Viral News",
+      "content": "New viral content takes over internet.",
+      "category": "Trending",
+      "city": "Global",
+      "state": "Global",
+      "author": 1,
+      "views_count": 780,
+      "is_published": true,
+      "created_at": "2026-01-18T10:00:00Z",
+      "updated_at": "2026-01-18T10:00:00Z"
+    }
+  },
+  {
+    "model": "news.article",
+    "pk": 19,
+    "fields": {
+      "title": "Live Rain Alert Gujarat",
+      "content": "Heavy rainfall expected in multiple districts.",
+      "category": "Live",
+      "city": "Ahmedabad",
+      "state": "Gujarat",
+      "author": 1,
+      "views_count": 900,
+      "is_published": true,
+      "created_at": "2026-01-19T10:00:00Z",
+      "updated_at": "2026-01-19T10:00:00Z"
+    }
+  },
+  {
+    "model": "news.article",
+    "pk": 20,
+    "fields": {
+      "title": "Breaking: Traffic Jam in Mumbai",
+      "content": "Severe traffic congestion reported in city.",
+      "category": "Live",
+      "city": "Mumbai",
+      "state": "Maharashtra",
+      "author": 1,
+      "views_count": 870,
+      "is_published": true,
+      "created_at": "2026-01-20T10:00:00Z",
+      "updated_at": "2026-01-20T10:00:00Z"
+    }
+  }
+]

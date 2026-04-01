@@ -1,0 +1,242 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}{{ article.title }} | The Daily Portal{% endblock %}
+
+{% block extra_head %}
+<style>
+/* ── Layout ── */
+.art-wrap   { max-width:var(--container); margin:0 auto; padding:2rem 1.5rem 4rem; }
+.art-layout { display:grid; grid-template-columns:1fr 300px; gap:2rem; align-items:start; }
+
+/* ── Breadcrumb ── */
+.bc { display:flex; align-items:center; gap:6px; font-size:.78rem; color:var(--text-muted); margin-bottom:1.5rem; flex-wrap:wrap; }
+.bc a { color:var(--text-muted); text-decoration:none; transition:color .15s; }
+.bc a:hover { color:var(--red); }
+.bc-sep { opacity:.35; }
+
+/* ── Article Header ── */
+.art-header { margin-bottom:1.5rem; }
+.art-cat { background:var(--red); color:#fff; font-size:.68rem; font-weight:800; text-transform:uppercase; letter-spacing:1px; padding:3px 11px; border-radius:var(--radius-sm); display:inline-block; margin-bottom:.75rem; }
+.art-title { font-family:var(--font-serif); font-size:2.2rem; line-height:1.25; font-weight:900; color:var(--text); margin-bottom:1rem; }
+.art-meta { display:flex; align-items:center; gap:1rem; flex-wrap:wrap; font-size:.82rem; color:var(--text-muted); padding-bottom:1rem; border-bottom:1px solid var(--border); }
+.author-chip { display:flex; align-items:center; gap:8px; }
+.author-av { width:34px; height:34px; border-radius:50%; background:linear-gradient(135deg,#0d1b2a,#e63946); display:flex; align-items:center; justify-content:center; color:#fff; font-weight:800; font-size:.85rem; flex-shrink:0; }
+
+/* ── Featured Image ── */
+.art-img { width:100%; max-height:480px; object-fit:cover; border-radius:var(--radius-lg); margin-bottom:2rem; box-shadow:var(--shadow-md); }
+.art-img-ph { width:100%; height:340px; background:linear-gradient(135deg,rgba(13,27,42,.06),rgba(230,57,70,.06)); border-radius:var(--radius-lg); display:flex; align-items:center; justify-content:center; font-size:5rem; margin-bottom:2rem; border:1px solid var(--border); }
+
+/* ── Article Body ── */
+.art-body { font-size:1.05rem; line-height:1.85; color:var(--text); }
+.art-body p { margin-bottom:1.25rem; }
+.art-body h2,.art-body h3 { font-family:var(--font-serif); font-weight:800; margin:2rem 0 1rem; color:var(--text); }
+
+/* ── Save Button ── */
+.save-btn { display:inline-flex; align-items:center; gap:6px; padding:.45rem 1.1rem; border-radius:var(--radius); border:1.5px solid var(--border); background:var(--bg-card); color:var(--text); font-size:.82rem; font-weight:700; text-decoration:none; transition:all .2s; cursor:pointer; font-family:var(--font-sans); }
+.save-btn:hover { border-color:#d97706; background:rgba(245,158,11,.08); color:#d97706; transform:none; }
+.save-btn.saved { background:rgba(245,158,11,.1); border-color:#d97706; color:#d97706; }
+
+/* ── Share Bar ── */
+.share-bar { display:flex; align-items:center; gap:.65rem; flex-wrap:wrap; padding:1.1rem 0; border-top:1px solid var(--border); border-bottom:1px solid var(--border); margin:2rem 0; }
+.share-label { font-size:.75rem; font-weight:800; color:var(--text-muted); text-transform:uppercase; letter-spacing:.6px; }
+.share-btn { display:inline-flex; align-items:center; gap:5px; padding:.4rem .9rem; border-radius:var(--radius); text-decoration:none; font-size:.8rem; font-weight:700; transition:opacity .2s,transform .15s; border:none; cursor:pointer; }
+.share-btn:hover { opacity:.85; transform:translateY(-1px); }
+.share-wa   { background:#25d366; color:#fff; }
+.share-fb   { background:#1877f2; color:#fff; }
+.share-tw   { background:#1da1f2; color:#fff; }
+.share-copy { background:var(--bg-card); color:var(--text); border:1.5px solid var(--border); }
+.share-copy:hover { border-color:var(--red); color:var(--red); background:var(--bg-card); }
+
+/* ── Comments ── */
+.comment-section { margin-top:2.5rem; }
+.comment-section h3 { font-family:var(--font-serif); font-size:1.3rem; font-weight:800; margin-bottom:1.25rem; color:var(--text); }
+.comment-form textarea { width:100%; background:var(--bg); border:1.5px solid var(--border); border-radius:var(--radius); padding:.85rem 1rem; color:var(--text); font-family:var(--font-sans); font-size:.9rem; resize:vertical; min-height:100px; margin:0; transition:border-color .2s; }
+.comment-form textarea:focus { outline:none; border-color:var(--red); box-shadow:0 0 0 3px rgba(230,57,70,.1); }
+.comment-form button { background:var(--red); color:#fff; border:none; border-radius:var(--radius); padding:.6rem 1.5rem; font-weight:700; cursor:pointer; margin-top:.75rem; width:auto; font-size:.875rem; font-family:var(--font-sans); transition:background .2s; }
+.comment-form button:hover { background:var(--red-dark); transform:none; }
+.comment-item { padding:1rem 0; border-bottom:1px solid var(--border); }
+.comment-item:last-child { border-bottom:none; }
+.comment-author { display:flex; align-items:center; gap:8px; margin-bottom:.5rem; }
+.comment-av { width:30px; height:30px; border-radius:50%; background:linear-gradient(135deg,#0d1b2a,#e63946); display:flex; align-items:center; justify-content:center; color:#fff; font-weight:800; font-size:.75rem; flex-shrink:0; }
+.comment-name { font-weight:700; font-size:.875rem; color:var(--text); }
+.comment-date { font-size:.72rem; color:var(--text-muted); }
+.comment-text { font-size:.875rem; color:var(--text); line-height:1.65; }
+
+/* ── Sidebar Widgets ── */
+.wgt { background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius-lg); padding:1.25rem 1.4rem; margin-bottom:1.25rem; box-shadow:var(--shadow-sm); }
+.wt  { font-family:var(--font-serif); font-size:1rem; font-weight:800; color:var(--text); border-bottom:2px solid var(--red); padding-bottom:.35rem; margin-bottom:1rem; display:inline-block; }
+.rel-item { display:flex; gap:10px; padding:.7rem 0; border-bottom:1px solid var(--border); }
+.rel-item:last-child { border-bottom:none; padding-bottom:0; }
+.rel-thumb { width:68px; height:54px; border-radius:var(--radius); background:var(--bg); flex-shrink:0; overflow:hidden; }
+.rel-thumb img { width:100%; height:100%; object-fit:cover; }
+.rel-title { font-size:.83rem; font-weight:700; line-height:1.4; color:var(--text); text-decoration:none; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+.rel-title:hover { color:var(--red); }
+.rel-meta { font-size:.7rem; color:var(--text-muted); margin-top:3px; }
+
+/* ── Tag pills ── */
+.tag-pill { padding:3px 11px; border-radius:99px; font-size:.75rem; font-weight:700; text-decoration:none; border:1.5px solid var(--border); color:var(--text-muted); background:var(--bg); transition:all .15s; }
+.tag-pill:hover { border-color:var(--red); color:var(--red); }
+.tag-pill.red { background:rgba(230,57,70,.08); border-color:rgba(230,57,70,.25); color:var(--red); }
+
+/* ── Login prompt ── */
+.login-prompt { background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius-lg); padding:1.5rem; text-align:center; margin-bottom:2rem; }
+.login-prompt p { color:var(--text-muted); margin-bottom:.75rem; font-size:.875rem; }
+.login-prompt a { background:var(--red); color:#fff; padding:.5rem 1.5rem; border-radius:var(--radius); text-decoration:none; font-weight:700; font-size:.875rem; transition:background .2s; }
+.login-prompt a:hover { background:var(--red-dark); }
+
+/* ── Responsive ── */
+@media(max-width:1024px){ .art-layout{grid-template-columns:1fr;} }
+@media(max-width:768px){ .art-wrap{padding:1rem 1rem 3rem;} .art-title{font-size:1.6rem;} }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="art-wrap">
+
+  <!-- Breadcrumb -->
+  <nav class="bc">
+    <a href="{% url 'home' %}">🏠 Home</a>
+    <span class="bc-sep">›</span>
+    {% if article.city %}<a href="{% url 'city_news' article.city %}">{{ article.city }}</a><span class="bc-sep">›</span>{% endif %}
+    {% if article.category %}<a href="#">{{ article.category }}</a><span class="bc-sep">›</span>{% endif %}
+    <span style="color:var(--text);font-weight:600;">{{ article.title|truncatechars:50 }}</span>
+  </nav>
+
+  <div class="art-layout">
+    <!-- MAIN ARTICLE -->
+    <article>
+      <div class="art-header">
+        <span class="art-cat">{{ article.category|default:"News" }}</span>
+        <h1 class="art-title">{{ article.title }}</h1>
+        <div class="art-meta">
+          <div class="author-chip">
+            <div class="author-av">{{ article.author.first_name|default:"A"|slice:":1"|upper }}</div>
+            <div>
+              <div style="font-weight:700;color:var(--text);font-size:.88rem;">{{ article.author.first_name|default:article.author.email }}</div>
+              <div style="font-size:.72rem;">Reporter</div>
+            </div>
+          </div>
+          <span><i class="fas fa-calendar fa-fw"></i> {{ article.created_at|date:"F d, Y" }}</span>
+          <span><i class="fas fa-clock fa-fw"></i> {{ article.created_at|time:"h:i A" }}</span>
+          <span><i class="fas fa-eye fa-fw"></i> {{ article.views_count }} views</span>
+          {% if article.city %}<span><i class="fas fa-location-dot fa-fw" style="color:var(--red);"></i> <a href="{% url 'city_news' article.city %}" style="color:var(--red);text-decoration:none;font-weight:600;">{{ article.city }}</a></span>{% endif %}
+          {% if article.state %}<span><i class="fas fa-map fa-fw"></i> <a href="{% url 'state_news' article.state %}" style="color:var(--text-muted);text-decoration:none;">{{ article.state }}</a></span>{% endif %}
+          <!-- Save button -->
+          <a href="{% url 'bookmark_article' article.id %}" class="save-btn {% if is_saved %}saved{% endif %}">
+            {% if is_saved %}⭐ Saved{% else %}☆ Save{% endif %}
+          </a>
+        </div>
+      </div>
+
+      <!-- Featured Image -->
+      {% with article.media.first as m %}
+        {% if m and m.media_upload %}
+          <img src="{{ m.media_upload.url }}" alt="{{ article.title }}" class="art-img">
+        {% else %}
+          <div class="art-img-ph">📰</div>
+        {% endif %}
+      {% endwith %}
+
+      <!-- Article Body -->
+      <div class="art-body">
+        {{ article.content|safe }}
+      </div>
+
+      <!-- Share Bar -->
+      <div class="share-bar">
+        <span class="share-label">Share:</span>
+        <a href="https://wa.me/?text={{ article.title|urlencode }}%20{{ request.build_absolute_uri }}" target="_blank" class="share-btn share-wa">
+          <i class="fab fa-whatsapp"></i> WhatsApp
+        </a>
+        <a href="https://www.facebook.com/sharer/sharer.php?u={{ request.build_absolute_uri|urlencode }}" target="_blank" class="share-btn share-fb">
+          <i class="fab fa-facebook"></i> Facebook
+        </a>
+        <a href="https://twitter.com/intent/tweet?text={{ article.title|urlencode }}&url={{ request.build_absolute_uri|urlencode }}" target="_blank" class="share-btn share-tw">
+          <i class="fab fa-twitter"></i> Twitter
+        </a>
+        <button onclick="navigator.clipboard.writeText(window.location.href);this.textContent='✓ Copied!';setTimeout(()=>this.textContent='🔗 Copy Link',2000);" class="share-btn share-copy">
+          🔗 Copy Link
+        </button>
+        <a href="{% url 'report_fake_news' article.id %}" style="margin-left:auto;font-size:.78rem;color:var(--text-muted);text-decoration:none;" title="Report fake news">🚩 Report</a>
+      </div>
+
+      <!-- Comments -->
+      <div class="comment-section">
+        <h3 style="font-family:var(--font-serif);font-size:1.4rem;margin-bottom:1.25rem;">💬 Comments ({{ comments.count }})</h3>
+
+        {% if request.user.is_authenticated %}
+        <form method="post" class="comment-form" style="margin-bottom:2rem;">
+          {% csrf_token %}
+          <textarea name="comment_text" placeholder="Share your thoughts on this story…"></textarea>
+          <button type="submit">Post Comment</button>
+        </form>
+        {% else %}
+        <div class="login-prompt">
+          <p>Join the conversation — log in to comment.</p>
+          <a href="{% url 'login' %}">Login to Comment</a>
+        </div>
+        {% endif %}
+
+        {% for comment in comments %}
+        <div class="comment-item">
+          <div class="comment-author">
+            <div class="comment-av">{{ comment.user.first_name|default:"U"|slice:":1"|upper }}</div>
+            <div>
+              <div class="comment-name">{{ comment.user.first_name|default:comment.user.email }}</div>
+              <div class="comment-date">{{ comment.comment_date|timesince }} ago</div>
+            </div>
+          </div>
+          <p class="comment-text">{{ comment.comment_text }}</p>
+        </div>
+        {% empty %}
+        <p style="color:var(--text-muted);font-size:.9rem;text-align:center;padding:1.5rem;">No comments yet. Be the first to share your thoughts.</p>
+        {% endfor %}
+      </div>
+    </article>
+
+    <!-- SIDEBAR -->
+    <aside>
+      <!-- Related Articles -->
+      <div class="wgt">
+        <div class="wt">📰 Related Articles</div>
+        {% for r in related %}
+        <div class="rel-item">
+          <div class="rel-thumb">
+            {% with r.media.first as m %}{% if m and m.media_upload %}<img src="{{ m.media_upload.url }}" alt="">{% endif %}{% endwith %}
+          </div>
+          <div>
+            <a href="{% url 'article_detail' r.id %}" class="rel-title">{{ r.title }}</a>
+            <div class="rel-meta">{{ r.category|default:"News" }} · {{ r.created_at|timesince }} ago</div>
+          </div>
+        </div>
+        {% empty %}
+        <p style="color:var(--text-muted);font-size:.85rem;">No related articles found.</p>
+        {% endfor %}
+      </div>
+
+      <!-- Author Card -->
+      <div class="wgt" style="text-align:center;">
+        <div style="width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg,var(--navy),var(--red));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:1.4rem;margin:0 auto .75rem;">
+          {{ article.author.first_name|default:"A"|slice:":1"|upper }}
+        </div>
+        <div style="font-weight:700;font-size:1rem;margin-bottom:.25rem;">{{ article.author.first_name|default:article.author.email }}</div>
+        <div style="font-size:.78rem;color:var(--text-muted);margin-bottom:.75rem;">Reporter · The Daily Portal</div>
+        <a href="#" style="display:inline-block;padding:.4rem 1rem;border:1px solid var(--border);border-radius:8px;font-size:.8rem;font-weight:600;color:var(--text);text-decoration:none;transition:all .2s;"
+          onmouseover="this.style.background='var(--red)';this.style.color='white'" onmouseout="this.style.background='transparent';this.style.color='var(--text)'">View Profile</a>
+      </div>
+
+      <!-- Tags -->
+      {% if article.city or article.state or article.category %}
+      <div class="wgt">
+        <div class="wt">🏷️ Tags</div>
+        <div style="display:flex;flex-wrap:wrap;gap:7px;">
+          {% if article.category %}<a href="#" class="tag-pill">{{ article.category }}</a>{% endif %}
+          {% if article.city %}<a href="{% url 'city_news' article.city %}" class="tag-pill red">📍 {{ article.city }}</a>{% endif %}
+          {% if article.state %}<a href="{% url 'state_news' article.state %}" class="tag-pill">🗺️ {{ article.state }}</a>{% endif %}
+        </div>
+      </div>
+      {% endif %}
+    </aside>
+  </div>
+</div>
+{% endblock %}

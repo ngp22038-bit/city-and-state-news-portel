@@ -1,0 +1,288 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}{{ category_name }} News | The Daily Portal{% endblock %}
+
+{% block city_options %}{% for city in cities %}<option value="{{ city }}">{{ city }}</option>{% endfor %}{% endblock %}
+{% block state_options %}{% for state in states %}<option value="{{ state }}">{{ state }}</option>{% endfor %}{% endblock %}
+
+{% block cat_politics %}{% if category_name|lower == 'politics' %}active{% endif %}{% endblock %}
+{% block cat_sports %}{% if category_name|lower == 'sports' %}active{% endif %}{% endblock %}
+{% block cat_jobs %}{% if category_name|lower == 'jobs' %}active{% endif %}{% endblock %}
+{% block cat_events %}{% if category_name|lower == 'events' %}active{% endif %}{% endblock %}
+{% block cat_business %}{% if category_name|lower == 'business' %}active{% endif %}{% endblock %}
+{% block cat_education %}{% if category_name|lower == 'education' %}active{% endif %}{% endblock %}
+{% block cat_trending %}{% if category_name|lower == 'trending' %}active{% endif %}{% endblock %}
+
+{% block extra_head %}
+<style>
+.cat-page { max-width: var(--container); margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+
+/* Hero banner */
+.cat-hero {
+  background: linear-gradient(135deg, #0d1b2a 0%, #1b2d3e 100%);
+  border-radius: var(--radius-lg); padding: 2rem 2.5rem;
+  margin-bottom: 2rem; display: flex; align-items: center;
+  justify-content: space-between; gap: 1rem; flex-wrap: wrap;
+  box-shadow: var(--shadow-lg);
+}
+.cat-hero-left h1 {
+  font-family: var(--font-serif); font-size: 2rem; font-weight: 900;
+  color: #fff; margin: 0 0 .3rem;
+}
+.cat-hero-left p { color: rgba(255,255,255,.5); font-size: .875rem; margin: 0; }
+.cat-count {
+  background: var(--red); color: #fff; font-size: 1.1rem; font-weight: 800;
+  padding: .6rem 1.4rem; border-radius: 50px;
+}
+
+/* Filter bar */
+.cat-filters {
+  display: flex; gap: .75rem; flex-wrap: wrap; align-items: center;
+  margin-bottom: 1.75rem;
+}
+.cat-sort {
+  padding: .5rem .9rem; background: var(--bg-card); border: 1.5px solid var(--border);
+  border-radius: var(--radius); font-size: .85rem; color: var(--text);
+  font-family: var(--font-sans); cursor: pointer;
+}
+.cat-sort:focus { outline: none; border-color: var(--red); }
+.cat-search-wrap { position: relative; flex: 1; min-width: 200px; max-width: 340px; }
+.cat-search-wrap i { position: absolute; left: .85rem; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: .8rem; }
+.cat-search-wrap input {
+  width: 100%; padding: .5rem .9rem .5rem 2.2rem;
+  background: var(--bg-card); border: 1.5px solid var(--border);
+  border-radius: var(--radius); font-size: .85rem; color: var(--text);
+  font-family: var(--font-sans); margin: 0;
+}
+.cat-search-wrap input:focus { outline: none; border-color: var(--red); }
+
+/* Grid */
+.cat-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+}
+@media (max-width: 900px) { .cat-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 560px) { .cat-grid { grid-template-columns: 1fr; } }
+
+/* Card */
+.cat-card {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); overflow: hidden;
+  box-shadow: var(--shadow-sm); transition: transform .2s, box-shadow .2s;
+  display: flex; flex-direction: column;
+}
+.cat-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+.cat-card-img {
+  width: 100%; height: 190px; object-fit: cover;
+  background: var(--bg); display: block;
+}
+.cat-card-img-placeholder {
+  width: 100%; height: 190px; background: linear-gradient(135deg, #0d1b2a22, #e6394622);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 2.5rem; color: var(--text-muted);
+}
+.cat-card-body { padding: 1.1rem 1.25rem 1.25rem; flex: 1; display: flex; flex-direction: column; }
+.cat-card-meta {
+  display: flex; align-items: center; gap: .5rem;
+  font-size: .72rem; color: var(--text-muted); margin-bottom: .6rem; flex-wrap: wrap;
+}
+.cat-badge {
+  background: rgba(230,57,70,.1); color: var(--red);
+  padding: 2px 9px; border-radius: 99px; font-size: .68rem; font-weight: 700;
+}
+.cat-card-title {
+  font-family: var(--font-serif); font-size: 1.05rem; font-weight: 800;
+  color: var(--text); line-height: 1.4; margin-bottom: .5rem;
+  text-decoration: none; display: block;
+}
+.cat-card-title:hover { color: var(--red); }
+.cat-card-excerpt { font-size: .83rem; color: var(--text-muted); line-height: 1.6; flex: 1; }
+.cat-card-footer {
+  margin-top: 1rem; padding-top: .75rem; border-top: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.cat-card-author { font-size: .75rem; color: var(--text-muted); display: flex; align-items: center; gap: 5px; }
+.cat-card-author-av {
+  width: 22px; height: 22px; border-radius: 50%;
+  background: linear-gradient(135deg, #0d1b2a, #e63946);
+  color: #fff; font-size: .6rem; font-weight: 800;
+  display: flex; align-items: center; justify-content: center;
+}
+.cat-read-btn {
+  font-size: .75rem; font-weight: 700; color: var(--red);
+  text-decoration: none; display: flex; align-items: center; gap: 4px;
+}
+.cat-read-btn:hover { color: var(--red-dark); }
+
+/* Empty */
+.cat-empty {
+  grid-column: 1/-1; text-align: center; padding: 5rem 1rem;
+  color: var(--text-muted);
+}
+.cat-empty i { font-size: 3.5rem; opacity: .15; display: block; margin-bottom: 1rem; }
+.cat-empty h3 { font-family: var(--font-serif); font-size: 1.4rem; font-weight: 800; margin-bottom: .5rem; color: var(--text); }
+
+/* Pagination */
+.cat-pagination { display: flex; justify-content: center; gap: .4rem; margin-top: 2.5rem; flex-wrap: wrap; }
+.pg-btn {
+  min-width: 36px; height: 36px; padding: 0 .7rem;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: 1.5px solid var(--border); border-radius: var(--radius-sm);
+  font-size: .85rem; font-weight: 600; color: var(--text-muted);
+  text-decoration: none; transition: all .15s; background: var(--bg-card);
+}
+.pg-btn:hover { border-color: var(--red); color: var(--red); }
+.pg-btn.active { background: var(--red); color: #fff; border-color: var(--red); }
+
+/* Loading spinner */
+#cat-spinner {
+  display: none; grid-column: 1/-1; text-align: center; padding: 3rem;
+}
+#cat-spinner .spinner {
+  width: 40px; height: 40px; border: 3px solid var(--border);
+  border-top-color: var(--red); border-radius: 50%;
+  animation: spin .7s linear infinite; margin: 0 auto;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="cat-page">
+
+  <!-- Hero -->
+  <div class="cat-hero">
+    <div class="cat-hero-left">
+      <h1>
+        {% if category_name|lower == 'politics' %}🏛️
+        {% elif category_name|lower == 'sports' %}🏏
+        {% elif category_name|lower == 'jobs' %}💼
+        {% elif category_name|lower == 'events' %}📅
+        {% elif category_name|lower == 'business' %}📈
+        {% elif category_name|lower == 'education' %}🎓
+        {% elif category_name|lower == 'trending' %}🔥
+        {% elif category_name|lower == 'technology' %}💻
+        {% elif category_name|lower == 'health' %}🏥
+        {% elif category_name|lower == 'crime' %}🚨
+        {% else %}📰{% endif %}
+        {{ category_name }} News
+      </h1>
+      <p>{% if category_name|lower == 'trending' %}Most viewed and engaged articles right now{% else %}Latest {{ category_name|lower }} articles from City &amp; State News Portal{% endif %}</p>
+    </div>
+    <div class="cat-count">{{ total }} Article{{ total|pluralize }}</div>
+  </div>
+
+  <!-- Filters -->
+  <div class="cat-filters">
+    <div class="cat-search-wrap">
+      <i class="fas fa-search"></i>
+      <input type="text" id="catSearch" placeholder="Search in {{ category_name }}…" oninput="filterCards()">
+    </div>
+    <select class="cat-sort" id="catSort" onchange="sortCards()">
+      <option value="latest">Latest First</option>
+      <option value="oldest">Oldest First</option>
+      <option value="views">Most Viewed</option>
+      <option value="az">A–Z</option>
+    </select>
+  </div>
+
+  <!-- Grid -->
+  <div class="cat-grid" id="catGrid">
+
+    {% for article in articles %}
+    <div class="cat-card"
+         data-title="{{ article.title|lower }}"
+         data-views="{{ article.views_count }}"
+         data-date="{{ article.created_at|date:'U' }}">
+      {% with article.media.first as m %}
+        {% if m and m.media_upload %}
+          <img src="{{ m.media_upload.url }}" alt="{{ article.title }}" class="cat-card-img">
+        {% else %}
+          <div class="cat-card-img-placeholder">
+            {% if category_name|lower == 'sports' %}🏏
+            {% elif category_name|lower == 'politics' %}🏛️
+            {% elif category_name|lower == 'business' %}📈
+            {% elif category_name|lower == 'education' %}🎓
+            {% elif category_name|lower == 'jobs' %}💼
+            {% elif category_name|lower == 'events' %}📅
+            {% else %}📰{% endif %}
+          </div>
+        {% endif %}
+      {% endwith %}
+      <div class="cat-card-body">
+        <div class="cat-card-meta">
+          <span class="cat-badge">{{ article.category }}</span>
+          {% if article.city %}<span><i class="fas fa-location-dot" style="color:var(--red);font-size:.65rem;"></i> {{ article.city }}</span>{% endif %}
+          <span><i class="fas fa-clock" style="font-size:.65rem;"></i> {{ article.created_at|date:"M d, Y" }}</span>
+        </div>
+        <a href="{% url 'article_detail' article.id %}" class="cat-card-title">{{ article.title }}</a>
+        <p class="cat-card-excerpt">{{ article.content|truncatewords:22 }}</p>
+        <div class="cat-card-footer">
+          <div class="cat-card-author">
+            <div class="cat-card-author-av">{{ article.author.first_name|default:"A"|slice:":1"|upper }}</div>
+            {{ article.author.first_name|default:article.author.email|truncatechars:16 }}
+          </div>
+          <a href="{% url 'article_detail' article.id %}" class="cat-read-btn">
+            Read <i class="fas fa-arrow-right" style="font-size:.65rem;"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+    {% empty %}
+    <div class="cat-empty">
+      <i class="fas fa-newspaper"></i>
+      <h3>No articles yet</h3>
+      <p>No articles available in <strong>{{ category_name }}</strong> right now. Check back soon.</p>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Pagination -->
+  {% if articles.paginator.num_pages > 1 %}
+  <div class="cat-pagination">
+    {% if articles.has_previous %}
+    <a href="?page={{ articles.previous_page_number }}" class="pg-btn"><i class="fas fa-chevron-left" style="font-size:.7rem;"></i></a>
+    {% endif %}
+    {% for num in articles.paginator.page_range %}
+      {% if articles.number == num %}
+        <span class="pg-btn active">{{ num }}</span>
+      {% elif num > articles.number|add:"-3" and num < articles.number|add:"3" %}
+        <a href="?page={{ num }}" class="pg-btn">{{ num }}</a>
+      {% endif %}
+    {% endfor %}
+    {% if articles.has_next %}
+    <a href="?page={{ articles.next_page_number }}" class="pg-btn"><i class="fas fa-chevron-right" style="font-size:.7rem;"></i></a>
+    {% endif %}
+  </div>
+  {% endif %}
+
+</div>
+
+<script>
+// Client-side search filter
+function filterCards() {
+  const q = document.getElementById('catSearch').value.toLowerCase();
+  document.querySelectorAll('.cat-card').forEach(card => {
+    card.style.display = card.dataset.title.includes(q) ? '' : 'none';
+  });
+}
+
+// Client-side sort
+function sortCards() {
+  const val   = document.getElementById('catSort').value;
+  const grid  = document.getElementById('catGrid');
+  const cards = Array.from(grid.querySelectorAll('.cat-card'));
+
+  cards.sort((a, b) => {
+    if (val === 'latest')  return b.dataset.date - a.dataset.date;
+    if (val === 'oldest')  return a.dataset.date - b.dataset.date;
+    if (val === 'views')   return parseInt(b.dataset.views) - parseInt(a.dataset.views);
+    if (val === 'az')      return a.dataset.title.localeCompare(b.dataset.title);
+    return 0;
+  });
+
+  cards.forEach(c => grid.appendChild(c));
+}
+</script>
+{% endblock %}

@@ -1,0 +1,162 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}City News | The Daily Portal{% endblock %}
+
+{% block city_options %}{% for city in cities %}<option value="{{ city }}" {% if city == city_filter %}selected{% endif %}>{{ city }}</option>{% endfor %}{% endblock %}
+{% block state_options %}{% for state in states %}<option value="{{ state }}">{{ state }}</option>{% endfor %}{% endblock %}
+{% block cat_city %}active{% endblock %}
+
+{% block extra_head %}
+<style>
+.cn-page { max-width: var(--container); margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+.cn-hero {
+  background: linear-gradient(135deg, #0d1b2a 0%, #1b2d3e 100%);
+  border-radius: var(--radius-lg); padding: 2rem 2.5rem;
+  margin-bottom: 2rem; display: flex; align-items: center;
+  justify-content: space-between; gap: 1rem; flex-wrap: wrap;
+  box-shadow: var(--shadow-lg);
+}
+.cn-hero h1 { font-family: var(--font-serif); font-size: 2rem; font-weight: 900; color: #fff; margin: 0 0 .3rem; }
+.cn-hero p  { color: rgba(255,255,255,.5); font-size: .875rem; margin: 0; }
+.cn-count   { background: var(--red); color: #fff; font-size: 1rem; font-weight: 800; padding: .5rem 1.2rem; border-radius: 50px; white-space: nowrap; }
+
+/* Filter bar */
+.cn-filters { display: flex; gap: .75rem; flex-wrap: wrap; align-items: center; margin-bottom: 1.75rem; }
+.cn-search-wrap { position: relative; flex: 1; min-width: 200px; max-width: 340px; }
+.cn-search-wrap i { position: absolute; left: .85rem; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: .8rem; }
+.cn-search-wrap input { width: 100%; padding: .55rem .9rem .55rem 2.2rem; background: var(--bg-card); border: 1.5px solid var(--border); border-radius: var(--radius); font-size: .875rem; color: var(--text); font-family: var(--font-sans); margin: 0; }
+.cn-search-wrap input:focus { outline: none; border-color: var(--red); }
+.cn-select { padding: .55rem .9rem; background: var(--bg-card); border: 1.5px solid var(--border); border-radius: var(--radius); font-size: .875rem; color: var(--text); font-family: var(--font-sans); cursor: pointer; }
+.cn-select:focus { outline: none; border-color: var(--red); }
+.cn-btn { padding: .55rem 1.2rem; background: var(--navy); color: #fff; border: none; border-radius: var(--radius); font-size: .875rem; font-weight: 700; cursor: pointer; font-family: var(--font-sans); transition: background .2s; margin: 0; width: auto; }
+.cn-btn:hover { background: var(--red); transform: none; }
+.cn-btn.clear { background: transparent; color: var(--text-muted); border: 1.5px solid var(--border); }
+.cn-btn.clear:hover { border-color: var(--red); color: var(--red); background: transparent; }
+
+/* City chips */
+.cn-chips { display: flex; gap: .5rem; flex-wrap: wrap; margin-bottom: 1.75rem; }
+.cn-chip {
+  padding: .35rem .9rem; border-radius: 99px; font-size: .78rem; font-weight: 700;
+  border: 1.5px solid var(--border); color: var(--text-muted); text-decoration: none;
+  background: var(--bg-card); transition: all .15s;
+}
+.cn-chip:hover, .cn-chip.active { background: var(--red); color: #fff; border-color: var(--red); }
+
+/* Grid & Cards */
+.cn-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 1.5rem; }
+@media (max-width: 900px) { .cn-grid { grid-template-columns: repeat(2,1fr); } }
+@media (max-width: 560px) { .cn-grid { grid-template-columns: 1fr; } }
+
+.cn-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--shadow-sm); transition: transform .2s, box-shadow .2s; display: flex; flex-direction: column; }
+.cn-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+.cn-card-img { width: 100%; height: 185px; object-fit: cover; background: var(--bg); display: block; }
+.cn-card-img-ph { width: 100%; height: 185px; background: linear-gradient(135deg, rgba(13,27,42,.08), rgba(230,57,70,.08)); display: flex; align-items: center; justify-content: center; font-size: 2.5rem; }
+.cn-card-body { padding: 1.1rem 1.25rem 1.25rem; flex: 1; display: flex; flex-direction: column; }
+.cn-card-meta { display: flex; align-items: center; gap: .5rem; font-size: .72rem; color: var(--text-muted); margin-bottom: .6rem; flex-wrap: wrap; }
+.cn-city-badge { background: rgba(13,27,42,.08); color: var(--navy); padding: 2px 9px; border-radius: 99px; font-size: .68rem; font-weight: 700; }
+.cn-cat-badge  { background: rgba(230,57,70,.1); color: var(--red); padding: 2px 9px; border-radius: 99px; font-size: .68rem; font-weight: 700; }
+.cn-card-title { font-family: var(--font-serif); font-size: 1.05rem; font-weight: 800; color: var(--text); line-height: 1.4; margin-bottom: .5rem; text-decoration: none; display: block; }
+.cn-card-title:hover { color: var(--red); }
+.cn-card-excerpt { font-size: .83rem; color: var(--text-muted); line-height: 1.6; flex: 1; }
+.cn-card-footer { margin-top: 1rem; padding-top: .75rem; border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+.cn-read-btn { font-size: .75rem; font-weight: 700; color: var(--red); text-decoration: none; display: flex; align-items: center; gap: 4px; }
+.cn-read-btn:hover { color: var(--red-dark); }
+
+/* Empty */
+.cn-empty { grid-column: 1/-1; text-align: center; padding: 5rem 1rem; color: var(--text-muted); }
+.cn-empty i { font-size: 3.5rem; opacity: .15; display: block; margin-bottom: 1rem; }
+
+/* Pagination */
+.cn-pagination { display: flex; justify-content: center; gap: .4rem; margin-top: 2.5rem; flex-wrap: wrap; }
+.pg-btn { min-width: 36px; height: 36px; padding: 0 .7rem; display: inline-flex; align-items: center; justify-content: center; border: 1.5px solid var(--border); border-radius: var(--radius-sm); font-size: .85rem; font-weight: 600; color: var(--text-muted); text-decoration: none; transition: all .15s; background: var(--bg-card); }
+.pg-btn:hover { border-color: var(--red); color: var(--red); }
+.pg-btn.active { background: var(--red); color: #fff; border-color: var(--red); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="cn-page">
+
+  <!-- Hero -->
+  <div class="cn-hero">
+    <div>
+      <h1>🏙️ City News</h1>
+      <p>Latest news from cities across India</p>
+    </div>
+    <div class="cn-count">{{ total }} Article{{ total|pluralize }}</div>
+  </div>
+
+  <!-- Filter bar -->
+  <form method="get" class="cn-filters">
+    <div class="cn-search-wrap">
+      <i class="fas fa-search"></i>
+      <input type="text" name="q" value="{{ q }}" placeholder="Search city news…">
+    </div>
+    <select name="city" class="cn-select" onchange="this.form.submit()">
+      <option value="">All Cities</option>
+      {% for city in cities %}
+      <option value="{{ city }}" {% if city == city_filter %}selected{% endif %}>{{ city }}</option>
+      {% endfor %}
+    </select>
+    <button type="submit" class="cn-btn"><i class="fas fa-filter"></i> Filter</button>
+    {% if city_filter or q %}
+    <a href="{% url 'all_city_news' %}" class="cn-btn clear"><i class="fas fa-xmark"></i> Clear</a>
+    {% endif %}
+  </form>
+
+  <!-- City chips -->
+  <div class="cn-chips">
+    <a href="{% url 'all_city_news' %}" class="cn-chip {% if not city_filter %}active{% endif %}">All</a>
+    {% for city in cities %}
+    <a href="?city={{ city }}" class="cn-chip {% if city == city_filter %}active{% endif %}">{{ city }}</a>
+    {% endfor %}
+  </div>
+
+  <!-- Grid -->
+  <div class="cn-grid">
+    {% for article in articles %}
+    <div class="cn-card">
+      {% with article.media.first as m %}
+        {% if m and m.media_upload %}
+          <img src="{{ m.media_upload.url }}" alt="{{ article.title }}" class="cn-card-img">
+        {% else %}
+          <div class="cn-card-img-ph">🏙️</div>
+        {% endif %}
+      {% endwith %}
+      <div class="cn-card-body">
+        <div class="cn-card-meta">
+          <span class="cn-city-badge"><i class="fas fa-location-dot"></i> {{ article.city }}</span>
+          {% if article.category %}<span class="cn-cat-badge">{{ article.category }}</span>{% endif %}
+          <span>{{ article.created_at|date:"M d, Y" }}</span>
+        </div>
+        <a href="{% url 'article_detail' article.id %}" class="cn-card-title">{{ article.title }}</a>
+        <p class="cn-card-excerpt">{{ article.content|truncatewords:20 }}</p>
+        <div class="cn-card-footer">
+          <span style="font-size:.75rem;color:var(--text-muted);"><i class="fas fa-eye" style="font-size:.65rem;"></i> {{ article.views_count }}</span>
+          <a href="{% url 'article_detail' article.id %}" class="cn-read-btn">Read <i class="fas fa-arrow-right" style="font-size:.65rem;"></i></a>
+        </div>
+      </div>
+    </div>
+    {% empty %}
+    <div class="cn-empty">
+      <i class="fas fa-city"></i>
+      <p style="font-weight:700;font-size:1.1rem;margin-bottom:.4rem;">No city news found</p>
+      <p style="font-size:.875rem;">{% if city_filter %}No articles for "{{ city_filter }}".{% else %}No city articles yet.{% endif %}</p>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Pagination -->
+  {% if articles.paginator.num_pages > 1 %}
+  <div class="cn-pagination">
+    {% if articles.has_previous %}<a href="?page={{ articles.previous_page_number }}&city={{ city_filter }}&q={{ q }}" class="pg-btn"><i class="fas fa-chevron-left" style="font-size:.7rem;"></i></a>{% endif %}
+    {% for num in articles.paginator.page_range %}
+      {% if articles.number == num %}<span class="pg-btn active">{{ num }}</span>
+      {% elif num > articles.number|add:"-3" and num < articles.number|add:"3" %}<a href="?page={{ num }}&city={{ city_filter }}&q={{ q }}" class="pg-btn">{{ num }}</a>{% endif %}
+    {% endfor %}
+    {% if articles.has_next %}<a href="?page={{ articles.next_page_number }}&city={{ city_filter }}&q={{ q }}" class="pg-btn"><i class="fas fa-chevron-right" style="font-size:.7rem;"></i></a>{% endif %}
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

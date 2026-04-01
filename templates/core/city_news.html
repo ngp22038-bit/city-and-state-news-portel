@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+{% block title %}{{ city_name }} News | The Daily Portal{% endblock %}
+{% block cat_city %}active{% endblock %}
+{% block city_options %}
+  {% for city in cities %}<option value="{{ city }}" {% if city == city_name %}selected{% endif %}>{{ city }}</option>{% endfor %}
+{% endblock %}
+
+{% block content %}
+<style>
+.page-wrap { max-width:var(--container); margin:0 auto; padding:2rem; }
+.page-hero { background:linear-gradient(135deg,#0f172a,#1e3a5f); border-radius:12px; padding:2.5rem; color:#fff; margin-bottom:2rem; display:flex; align-items:center; gap:1.5rem; }
+.page-hero-icon { font-size:3.5rem; }
+.page-hero h1 { font-family:var(--font-serif); font-size:2.2rem; margin-bottom:.4rem; }
+.page-hero p { opacity:.75; font-size:.95rem; }
+.cl { display:grid; grid-template-columns:1fr 300px; gap:2rem; }
+.g3 { display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:1.25rem; }
+.nc { background:var(--bg-card); border:1px solid var(--border); border-radius:10px; overflow:hidden; transition:transform .2s,box-shadow .2s; display:flex; flex-direction:column; }
+.nc:hover { transform:translateY(-4px); box-shadow:var(--shadow); }
+.nci { height:155px; overflow:hidden; background:linear-gradient(135deg,#1e293b,#334155); position:relative; flex-shrink:0; }
+.nci img { width:100%; height:100%; object-fit:cover; transition:transform .4s; }
+.nc:hover .nci img { transform:scale(1.06); }
+.nci-ph { width:100%; height:100%; display:flex; align-items:center; justify-content:center; font-size:2.5rem; opacity:.2; }
+.nci .ctag { position:absolute; top:8px; left:8px; background:var(--accent); color:#fff; font-size:.62rem; font-weight:800; text-transform:uppercase; padding:2px 8px; border-radius:3px; }
+.ncb { padding:.9rem; flex:1; display:flex; flex-direction:column; }
+.ncm { font-size:.7rem; color:var(--text-muted); margin-bottom:.35rem; display:flex; justify-content:space-between; }
+.nct { font-family:var(--font-serif); font-size:.97rem; line-height:1.4; font-weight:700; color:var(--text-main); margin-bottom:.4rem; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+.nct a { color:inherit; text-decoration:none; }
+.nct a:hover { color:var(--accent); }
+.ncx { font-size:.8rem; color:var(--text-muted); line-height:1.5; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+.wgt { background:var(--bg-card); border:1px solid var(--border); border-radius:10px; padding:1.2rem; margin-bottom:1.4rem; }
+.wt { font-family:var(--font-serif); font-size:1.05rem; border-bottom:2px solid var(--accent); padding-bottom:.35rem; margin-bottom:.9rem; display:inline-block; }
+@media(max-width:1024px){ .cl{grid-template-columns:1fr;} }
+@media(max-width:768px){ .page-wrap{padding:1rem;} .g3{grid-template-columns:1fr 1fr;} }
+@media(max-width:480px){ .g3{grid-template-columns:1fr;} }
+</style>
+
+<div class="page-wrap">
+  <!-- Page Hero -->
+  <div class="page-hero">
+    <div class="page-hero-icon">🏙️</div>
+    <div>
+      <h1>{{ city_name }} News</h1>
+      <p>Hyperlocal stories, events, and announcements from {{ city_name }}.</p>
+      <div style="display:flex;gap:.75rem;margin-top:1rem;flex-wrap:wrap;">
+        {% for city in cities %}
+        <a href="{% url 'city_news' city %}" style="padding:4px 12px;border-radius:20px;font-size:.78rem;font-weight:700;text-decoration:none;{% if city == city_name %}background:var(--accent);color:#fff;{% else %}background:rgba(255,255,255,.1);color:rgba(255,255,255,.8);{% endif %}">{{ city }}</a>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <div class="cl">
+    <div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.1rem;padding-bottom:.45rem;border-bottom:2px solid var(--text-main);">
+        <h2 style="font-family:var(--font-serif);font-size:1.5rem;margin:0;">📰 {{ articles.count }} Article{{ articles.count|pluralize }} in {{ city_name }}</h2>
+      </div>
+      <div class="g3">
+        {% for a in articles %}
+        <div class="nc">
+          <div class="nci">
+            {% with a.media.first as m %}{% if m and m.media_upload %}<img src="{{ m.media_upload.url }}" alt="{{ a.title }}" loading="lazy">{% else %}<div class="nci-ph">🏙️</div>{% endif %}{% endwith %}
+            <span class="ctag">{{ a.category|default:"Local" }}</span>
+          </div>
+          <div class="ncb">
+            <div class="ncm"><span>{{ a.created_at|timesince }} ago</span><span>👁 {{ a.views_count }}</span></div>
+            <div class="nct"><a href="{% url 'article_detail' a.id %}">{{ a.title }}</a></div>
+            <p class="ncx">{{ a.content|truncatechars:95 }}</p>
+          </div>
+        </div>
+        {% empty %}
+        <div style="grid-column:1/-1;text-align:center;padding:4rem;color:var(--text-muted);">
+          <div style="font-size:3rem;margin-bottom:1rem;">📭</div>
+          <p style="font-size:1.1rem;font-weight:600;margin-bottom:.5rem;">No articles for {{ city_name }} yet.</p>
+          <p style="font-size:.9rem;">Be the first to report from this city.</p>
+          <a href="{% url 'add_article' %}" style="display:inline-block;margin-top:1rem;background:var(--accent);color:#fff;padding:.6rem 1.5rem;border-radius:8px;text-decoration:none;font-weight:700;">+ Add Article</a>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <aside>
+      <div class="wgt">
+        <div class="wt">📍 Other Cities</div>
+        {% for city in cities %}
+        <a href="{% url 'city_news' city %}" style="display:flex;align-items:center;justify-content:space-between;padding:.55rem .75rem;border-radius:8px;text-decoration:none;color:var(--text-main);font-size:.88rem;font-weight:{% if city == city_name %}700{% else %}500{% endif %};background:{% if city == city_name %}rgba(216,0,0,.08){% else %}transparent{% endif %};margin-bottom:4px;transition:background .2s;"
+          onmouseover="this.style.background='rgba(216,0,0,.06)'" onmouseout="this.style.background='{% if city == city_name %}rgba(216,0,0,.08){% else %}transparent{% endif %}'">
+          <span>🏙️ {{ city }}</span>
+          {% if city == city_name %}<span style="color:var(--accent);font-size:.7rem;font-weight:800;">CURRENT</span>{% endif %}
+        </a>
+        {% endfor %}
+      </div>
+      <div class="wgt">
+        <div class="wt">📢 Local Events</div>
+        <p style="color:var(--text-muted);font-size:.85rem;">Community events and announcements for {{ city_name }} will appear here.</p>
+      </div>
+    </aside>
+  </div>
+</div>
+{% endblock %}

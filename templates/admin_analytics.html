@@ -1,0 +1,224 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Admin Analytics | Portal Dashboard{% endblock %}
+
+{% block city_options %}
+  {% for city in cities %}<option value="{{ city }}">{{ city }}</option>{% endfor %}
+{% endblock %}
+{% block state_options %}
+  {% for state in states %}<option value="{{ state }}">{{ state }}</option>{% endfor %}
+{% endblock %}
+
+{% block content %}
+<style>
+.aa-wrap {
+  max-width: var(--container); margin: 0 auto; padding: 2rem 2rem 4rem;
+}
+
+/* ── Page Header ── */
+.aa-header {
+  background: linear-gradient(135deg, #0d1b2a 0%, #1d4ed8 100%);
+  border-radius: var(--radius-lg); padding: 2rem 2.5rem;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 1.5rem; margin-bottom: 2.5rem; flex-wrap: wrap;
+  box-shadow: var(--shadow-lg);
+}
+.aa-header-text h1 {
+  font-family: var(--font-serif); font-size: 2rem; font-weight: 900;
+  color: #fff; margin-bottom: .3rem;
+}
+.aa-header-text p { color: rgba(255,255,255,.65); font-size: .92rem; }
+.aa-back-btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: #fff; color: #1d4ed8; font-weight: 700;
+  font-size: .875rem; padding: .65rem 1.4rem; border-radius: 50px;
+  border: none; cursor: pointer; text-decoration: none;
+  transition: background .2s, transform .15s; white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(0,0,0,.15);
+}
+.aa-back-btn:hover { background: #eff6ff; transform: translateY(-1px); }
+
+/* ── Stats Grid ── */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
+  margin-bottom: 2.5rem;
+}
+.stat-card {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); padding: 1.5rem;
+  display: flex; align-items: center; gap: 1.2rem;
+  transition: transform .2s var(--ease), box-shadow .2s var(--ease);
+  box-shadow: var(--shadow-sm);
+}
+.stat-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+.stat-icon {
+  width: 56px; height: 56px; border-radius: 12px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center; font-size: 1.6rem;
+}
+.ic-blue   { background: #dbeafe; }
+.ic-teal   { background: #ccfbf1; }
+.ic-purple { background: #ede9fe; }
+.ic-red    { background: #fee2e2; }
+.ic-orange { background: #ffedd5; }
+.ic-green  { background: #dcfce7; }
+.stat-info { flex: 1; min-width: 0; }
+.stat-label {
+  font-size: .72rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .8px; color: var(--text-muted); margin-bottom: .3rem;
+}
+.stat-value {
+  font-size: 2rem; font-weight: 800; color: var(--text); line-height: 1;
+}
+
+/* ── Bottom Panels ── */
+.aa-panels {
+  display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem;
+}
+.panel {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); padding: 1.5rem;
+  box-shadow: var(--shadow-sm);
+}
+.panel-title {
+  font-family: var(--font-serif); font-size: 1.15rem; font-weight: 800;
+  color: var(--text); margin-bottom: 1.2rem; padding-bottom: .5rem;
+  border-bottom: 2px solid var(--red); display: inline-block;
+}
+.styled-table { width: 100%; border-collapse: collapse; }
+.styled-table th {
+  text-align: left; padding: 10px 12px;
+  border-bottom: 2px solid var(--border);
+  color: var(--text-muted); font-weight: 700; font-size: .78rem;
+  text-transform: uppercase; letter-spacing: .5px;
+}
+.styled-table td {
+  padding: 12px; border-bottom: 1px solid var(--border-soft);
+  font-size: .875rem; color: var(--text);
+}
+.styled-table tr:last-child td { border-bottom: none; }
+.status-badge {
+  display: inline-block; padding: 3px 10px; border-radius: 99px;
+  font-size: .7rem; font-weight: 700;
+  background: #dcfce7; color: #166534;
+}
+.health-item {
+  padding: 1rem; border-radius: var(--radius); border: 1px solid var(--border);
+  margin-bottom: .75rem;
+}
+.health-item.ok   { border-left: 4px solid #22c55e; }
+.health-item.warn { border-left: 4px solid #f59e0b; }
+.health-item h4 { font-size: .875rem; font-weight: 700; margin-bottom: 3px; }
+.health-item p  { font-size: .8rem; color: var(--text-muted); }
+.btn-check {
+  width: 100%; padding: .75rem; margin-top: .5rem;
+  background: #1d4ed8; color: #fff; border: none;
+  border-radius: var(--radius); font-weight: 700; font-size: .875rem;
+  cursor: pointer; transition: background .2s;
+}
+.btn-check:hover { background: #1e40af; transform: none; }
+
+@media (max-width: 1024px) { .stats-grid { grid-template-columns: repeat(2,1fr); } }
+@media (max-width: 768px)  { .stats-grid { grid-template-columns: 1fr; } .aa-panels { grid-template-columns: 1fr; } }
+</style>
+
+<div class="aa-wrap">
+
+  <!-- ── HEADER ── -->
+  <div class="aa-header">
+    <div class="aa-header-text">
+      <h1>📊 Admin Analytics Dashboard</h1>
+      <p>Platform performance and engagement overview</p>
+    </div>
+    <a href="{% url 'owner_dashboard' %}" class="aa-back-btn">
+      <i class="fas fa-arrow-left"></i> Back to Owner Portal
+    </a>
+  </div>
+
+  <!-- ── 6 STAT CARDS ── -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon ic-blue">📰</div>
+      <div class="stat-info">
+        <div class="stat-label">Total Articles</div>
+        <div class="stat-value">{{ total_articles }}</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon ic-teal">👤</div>
+      <div class="stat-info">
+        <div class="stat-label">Total Readers</div>
+        <div class="stat-value">{{ total_users }}</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon ic-purple">💬</div>
+      <div class="stat-info">
+        <div class="stat-label">Total Comments</div>
+        <div class="stat-value">{{ total_comments }}</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon ic-red">🔥</div>
+      <div class="stat-info">
+        <div class="stat-label">Total Reactions</div>
+        <div class="stat-value">{{ total_reactions }}</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon ic-orange">📢</div>
+      <div class="stat-info">
+        <div class="stat-label">Active Advertisements</div>
+        <div class="stat-value">{{ active_ads }}</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon ic-green">💳</div>
+      <div class="stat-info">
+        <div class="stat-label">Total Revenue</div>
+        <div class="stat-value">₹{{ total_revenue }}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── BOTTOM PANELS ── -->
+  <div class="aa-panels">
+    <div class="panel">
+      <div class="panel-title">Recent Advertising Data</div>
+      <table class="styled-table">
+        <thead>
+          <tr>
+            <th>Advertiser</th>
+            <th>Campaign</th>
+            <th>Plan</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Local Motors</td><td>Summer Sale Ad</td><td>Premium</td><td><span class="status-badge">Active</span></td></tr>
+          <tr><td>Tech Hub</td><td>New Device Launch</td><td>Standard</td><td><span class="status-badge">Active</span></td></tr>
+          <tr><td>City Realty</td><td>Apartment Listings</td><td>Basic</td><td><span class="status-badge">Active</span></td></tr>
+        </tbody>
+      </table>
+      <div style="text-align:center;margin-top:1.2rem;">
+        <a href="#" style="color:var(--red);font-weight:700;font-size:.875rem;">View All Advertising Logs →</a>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">System Health</div>
+      <div class="health-item ok">
+        <h4>✅ Server Status</h4>
+        <p>All systems operational. Uptime 99.9%.</p>
+      </div>
+      <div class="health-item warn">
+        <h4>⚠️ Pending Reports</h4>
+        <p>2 fake news reports awaiting moderation.</p>
+      </div>
+      <button class="btn-check">🔍 Run System Check</button>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

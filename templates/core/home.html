@@ -1,0 +1,397 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}The Daily Portal | City & State News{% endblock %}
+{% block cat_home %}active{% endblock %}
+
+{% block city_options %}
+  {% for city in cities %}<option value="{{ city }}">{{ city }}</option>{% endfor %}
+{% endblock %}
+{% block state_options %}
+  {% for state in states %}<option value="{{ state }}">{{ state }}</option>{% endfor %}
+{% endblock %}
+
+{% block extra_head %}
+<style>
+/* ── Layout ── */
+.hw { max-width: var(--container); margin: 0 auto; padding: 2rem 2rem 0; }
+
+/* ── Hero ── */
+.hero-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; margin-bottom: 2.5rem; }
+
+.hero-feat {
+  position: relative; border-radius: var(--radius-lg); overflow: hidden;
+  height: 480px; background: #111; cursor: pointer;
+  box-shadow: var(--shadow-lg);
+}
+.hero-feat img { width: 100%; height: 100%; object-fit: cover; transition: transform .7s var(--ease); }
+.hero-feat:hover img { transform: scale(1.04); }
+.hero-ph { width: 100%; height: 100%; background: linear-gradient(135deg,#0f172a,#1e3a5f); display: flex; align-items: center; justify-content: center; font-size: 5rem; opacity: .15; }
+
+.hero-ov {
+  position: absolute; bottom: 0; left: 0; right: 0; padding: 2.5rem;
+  background: linear-gradient(to top, rgba(0,0,0,.93) 0%, rgba(0,0,0,.45) 55%, transparent);
+  color: #fff;
+}
+.breaking-badge {
+  background: var(--accent); color: #fff; font-size: .65rem; font-weight: 800;
+  text-transform: uppercase; letter-spacing: 1.2px; padding: 3px 10px;
+  border-radius: 3px; display: inline-flex; align-items: center; gap: 5px;
+  margin-bottom: .7rem; animation: pulse-badge 2s infinite;
+}
+@keyframes pulse-badge { 0%,100%{opacity:1} 50%{opacity:.75} }
+.hero-ov h1 {
+  font-family: var(--font-serif); font-size: 2.1rem; line-height: 1.2;
+  margin-bottom: .65rem; font-weight: 900;
+}
+.hero-ov h1 a { color: #fff; }
+.hero-ov h1 a:hover { text-decoration: underline; text-underline-offset: 3px; }
+.hero-meta { font-size: .8rem; opacity: .75; display: flex; gap: 1rem; flex-wrap: wrap; }
+
+/* ── Hero Sidebar ── */
+.hero-sb { display: flex; flex-direction: column; gap: .85rem; }
+.hsb-label { font-size: .68rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); }
+.hsb-card {
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius);
+  overflow: hidden; display: flex; height: 94px; cursor: pointer;
+  transition: transform .2s var(--ease), box-shadow .2s var(--ease);
+  box-shadow: var(--shadow-sm);
+}
+.hsb-card:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+.hsb-thumb { width: 94px; flex-shrink: 0; background: linear-gradient(135deg,#1e293b,#334155); overflow: hidden; }
+.hsb-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.hsb-thumb-ph { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; opacity: .2; }
+.hsb-body { padding: .6rem .75rem; flex: 1; min-width: 0; }
+.hsb-cat { font-size: .62rem; font-weight: 800; text-transform: uppercase; color: var(--accent); letter-spacing: .5px; margin-bottom: 3px; }
+.hsb-title { font-family: var(--font-serif); font-size: .85rem; line-height: 1.35; font-weight: 700; color: var(--text-main); display: -webkit-box; -webkit-line-clamp: 3; line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+
+/* ── Section Header ── */
+.sh { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.2rem; padding-bottom: .5rem; border-bottom: 2px solid var(--text-main); }
+.sh h2 { font-family: var(--font-serif); font-size: 1.45rem; margin: 0; }
+.sh a { color: var(--accent); font-size: .8rem; font-weight: 700; }
+.sh a:hover { text-decoration: underline; }
+
+/* ── Main + Sidebar layout ── */
+.cl { display: grid; grid-template-columns: 1fr 300px; gap: 2.5rem; margin-bottom: 3rem; }
+
+/* ── News Card ── */
+.nc {
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius);
+  overflow: hidden; display: flex; flex-direction: column;
+  transition: transform .25s var(--ease), box-shadow .25s var(--ease);
+  box-shadow: var(--shadow-sm);
+}
+.nc:hover { transform: translateY(-5px); box-shadow: var(--shadow-lg); }
+.nci { height: 160px; overflow: hidden; background: linear-gradient(135deg,#1e293b,#334155); position: relative; flex-shrink: 0; }
+.nci img { width: 100%; height: 100%; object-fit: cover; transition: transform .45s var(--ease); }
+.nc:hover .nci img { transform: scale(1.07); }
+.nci-ph { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 2.2rem; opacity: .18; }
+.nci .ctag { position: absolute; top: 8px; left: 8px; background: var(--accent); color: #fff; font-size: .6rem; font-weight: 800; text-transform: uppercase; padding: 2px 8px; border-radius: 3px; letter-spacing: .5px; }
+.ncb { padding: .9rem; flex: 1; display: flex; flex-direction: column; }
+.ncm { font-size: .7rem; color: var(--text-muted); margin-bottom: .35rem; display: flex; justify-content: space-between; }
+.nct { font-family: var(--font-serif); font-size: .95rem; line-height: 1.4; font-weight: 700; color: var(--text-main); margin-bottom: .4rem; display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.nct a { color: inherit; }
+.nct a:hover { color: var(--accent); }
+.ncx { font-size: .8rem; color: var(--text-muted); line-height: 1.55; display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-bottom: .6rem; }
+.ncf { margin-top: auto; padding-top: .55rem; border-top: 1px solid var(--border-soft); display: flex; justify-content: space-between; align-items: center; font-size: .72rem; color: var(--text-muted); }
+.ncsave { background: none; border: none; cursor: pointer; color: var(--text-muted); padding: 0; margin: 0; width: auto; font-size: .9rem; transition: color .2s, transform .2s; }
+.ncsave:hover, .ncsave.saved { color: #f59e0b; transform: scale(1.2); background: none; }
+
+/* ── Horizontal Card ── */
+.nc-h { flex-direction: row; height: 100px; }
+.nc-h .nci { width: 100px; height: 100%; flex-shrink: 0; border-radius: 0; }
+.nc-h .ncb { padding: .6rem .75rem; }
+.nc-h .nct { font-size: .84rem; -webkit-line-clamp: 3; line-clamp: 3; }
+.nc-h .ncx, .nc-h .ncf { display: none; }
+
+/* ── Grids ── */
+.g3 { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 1.2rem; }
+.g2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+
+/* ── City Strip ── */
+.cstrip { display: flex; gap: .6rem; overflow-x: auto; padding-bottom: .4rem; scrollbar-width: none; margin-bottom: 2.5rem; }
+.cstrip::-webkit-scrollbar { display: none; }
+.cchip {
+  display: inline-flex; align-items: center; gap: 5px; padding: .42rem .95rem;
+  background: #eef0f4; border: 1.5px solid #c2c8d4; border-radius: 50px;
+  color: #0d1b2a; font-size: .78rem; font-weight: 700; white-space: nowrap;
+  transition: all .2s var(--ease); flex-shrink: 0; box-shadow: 0 2px 8px rgba(13,27,42,.1);
+}
+.cchip:hover {
+  background: #0d1b2a; color: #fff; border-color: #0d1b2a;
+  transform: translateY(-2px); box-shadow: 0 6px 16px rgba(13,27,42,.3);
+}
+
+/* ── Sidebar Widgets ── */
+.wgt { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.2rem; margin-bottom: 1.4rem; box-shadow: var(--shadow-sm); }
+.wt { font-family: var(--font-serif); font-size: 1rem; border-bottom: 2px solid var(--accent); padding-bottom: .3rem; margin-bottom: .9rem; display: inline-block; color: var(--text-main); }
+.tri { display: flex; gap: 9px; padding: .6rem 0; border-bottom: 1px solid var(--border-soft); }
+.tri:last-child { border-bottom: none; padding-bottom: 0; }
+.trn { font-size: 1.1rem; font-weight: 800; color: var(--border); min-width: 20px; line-height: 1; }
+.trt { font-size: .84rem; font-weight: 600; line-height: 1.4; color: var(--text-main); }
+.trt a { color: inherit; }
+.trt a:hover { color: var(--accent); }
+.trm { font-size: .68rem; color: var(--text-muted); margin-top: 2px; }
+
+/* ── Ad Box ── */
+.adbox { background: linear-gradient(135deg,#1a1a2e,#16213e); border-radius: var(--radius); padding: 1.4rem; text-align: center; color: #fff; }
+.adbox .adlbl { font-size: .6rem; text-transform: uppercase; letter-spacing: 1px; opacity: .45; margin-bottom: .4rem; }
+.adbox h4 { font-family: var(--font-serif); font-size: 1rem; margin-bottom: .4rem; }
+.adbox p { font-size: .78rem; opacity: .65; margin-bottom: .9rem; }
+.adbox a { background: var(--accent); color: #fff; padding: .45rem 1.1rem; border-radius: 6px; font-size: .8rem; font-weight: 700; display: inline-block; transition: background .2s; }
+.adbox a:hover { background: var(--accent-hover); }
+
+/* ── Newsletter ── */
+.nlband {
+  background: linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);
+  border-radius: var(--radius-lg); padding: 3rem 2rem; text-align: center;
+  color: #fff; margin-bottom: 3rem; position: relative; overflow: hidden;
+}
+.nlband::before {
+  content: ''; position: absolute; top: -50%; right: -10%;
+  width: 400px; height: 400px; border-radius: 50%;
+  background: rgba(230,57,70,.08); pointer-events: none;
+}
+.nlband h2 { font-family: var(--font-serif); font-size: 1.9rem; margin-bottom: .6rem; }
+.nlband p { opacity: .7; margin-bottom: 1.4rem; font-size: .92rem; }
+.nlform { display: flex; gap: .6rem; max-width: 420px; margin: 0 auto; }
+.nlform input { flex: 1; background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.2); color: #fff; border-radius: 8px; padding: .65rem 1rem; font-size: .88rem; margin: 0; }
+.nlform input::placeholder { color: rgba(255,255,255,.45); }
+.nlform input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(230,57,70,.2); }
+.nlform button { background: var(--accent); color: #fff; border: none; border-radius: 8px; padding: .65rem 1.4rem; font-weight: 700; cursor: pointer; margin: 0; width: auto; white-space: nowrap; transition: background .2s; }
+.nlform button:hover { background: var(--accent-hover); transform: none; }
+
+/* ── Responsive ── */
+@media (max-width: 1024px) {
+  .hero-grid { grid-template-columns: 1fr; }
+  .hero-sb { flex-direction: row; overflow-x: auto; }
+  .hsb-card { min-width: 200px; }
+  .cl { grid-template-columns: 1fr; }
+}
+@media (max-width: 768px) {
+  .hw { padding: 1rem; }
+  .hero-feat { height: 300px; }
+  .hero-ov h1 { font-size: 1.4rem; }
+  .g3 { grid-template-columns: 1fr 1fr; }
+  .g2 { grid-template-columns: 1fr; }
+  .nlform { flex-direction: column; }
+}
+@media (max-width: 480px) { .g3 { grid-template-columns: 1fr; } }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="hw">
+
+<!-- ══ HERO ══ -->
+<div class="hero-grid reveal">
+  <div class="hero-feat">
+    {% if featured %}
+      {% with featured.media.first as m %}
+        {% if m and m.media_upload %}<img src="{{ m.media_upload.url }}" alt="{{ featured.title }}">
+        {% else %}<div class="hero-ph">📰</div>{% endif %}
+      {% endwith %}
+      <div class="hero-ov">
+        <div class="breaking-badge">🔴 Breaking News</div>
+        <h1><a href="{% url 'article_detail' featured.id %}">{{ featured.title }}</a></h1>
+        <div class="hero-meta">
+          <span><i class="fas fa-user-pen fa-fw"></i> {{ featured.author.first_name|default:featured.author.email }}</span>
+          <span><i class="fas fa-calendar fa-fw"></i> {{ featured.created_at|date:"M d, Y" }}</span>
+          <span><i class="fas fa-eye fa-fw"></i> {{ featured.views_count }}</span>
+          {% if featured.city %}<span><i class="fas fa-location-dot fa-fw"></i> {{ featured.city }}</span>{% endif %}
+        </div>
+      </div>
+    {% else %}
+      <div class="hero-ph">📰</div>
+      <div class="hero-ov">
+        <div class="breaking-badge">🔴 Breaking News</div>
+        <h1><a href="#">The Daily Portal — Your City. Your State. Your News.</a></h1>
+        <div class="hero-meta"><span>Hyperlocal journalism across Gujarat &amp; beyond</span></div>
+      </div>
+    {% endif %}
+  </div>
+
+  <div class="hero-sb">
+    <div class="hsb-label">🔥 Trending Now</div>
+    {% for a in trending|slice:":4" %}
+    <a href="{% url 'article_detail' a.id %}" class="hsb-card">
+      <div class="hsb-thumb">
+        {% with a.media.first as m %}{% if m and m.media_upload %}<img src="{{ m.media_upload.url }}" alt="">
+        {% else %}<div class="hsb-thumb-ph">📰</div>{% endif %}{% endwith %}
+      </div>
+      <div class="hsb-body">
+        <div class="hsb-cat">{{ a.category|default:"News" }}</div>
+        <div class="hsb-title">{{ a.title }}</div>
+      </div>
+    </a>
+    {% empty %}
+    <p style="color:var(--text-muted);font-size:.85rem;">No trending articles yet.</p>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- ══ CITY STRIP ══ -->
+<div class="cstrip reveal reveal-delay-1">
+  <span style="font-size:.72rem;font-weight:700;color:var(--text-muted);white-space:nowrap;align-self:center;flex-shrink:0;">📍 Cities:</span>
+  {% for city in cities %}
+  <a href="{% url 'city_news' city %}" class="cchip">🏙️ {{ city }}</a>
+  {% empty %}
+  <a href="#" class="cchip">🏙️ Ahmedabad</a>
+  <a href="#" class="cchip">🏙️ Surat</a>
+  <a href="#" class="cchip">🏙️ Mumbai</a>
+  <a href="#" class="cchip">🏙️ Pune</a>
+  {% endfor %}
+</div>
+
+<!-- ══ MAIN + SIDEBAR ══ -->
+<div class="cl">
+  <div>
+
+    <!-- Latest Headlines -->
+    <div style="margin-bottom:2.5rem;" class="reveal">
+      <div class="sh"><h2>📰 Latest Headlines</h2><a href="#">View all →</a></div>
+      <div class="g3">
+        {% for a in latest %}
+        <div class="nc">
+          <div class="nci">
+            {% with a.media.first as m %}{% if m and m.media_upload %}<img src="{{ m.media_upload.url }}" alt="{{ a.title }}" loading="lazy">
+            {% else %}<div class="nci-ph">📰</div>{% endif %}{% endwith %}
+            <span class="ctag">{{ a.category|default:"News" }}</span>
+          </div>
+          <div class="ncb">
+            <div class="ncm"><span>{{ a.created_at|timesince }} ago</span><span>👁 {{ a.views_count }}</span></div>
+            <div class="nct"><a href="{% url 'article_detail' a.id %}">{{ a.title }}</a></div>
+            <p class="ncx">{{ a.content|truncatechars:95 }}</p>
+            <div class="ncf">
+              <span>{% if a.city %}<i class="fas fa-location-dot" style="color:var(--accent);font-size:.65rem;"></i> {{ a.city }}{% endif %}</span>
+              <a href="{% url 'bookmark_article' a.id %}" class="ncsave {% if a.id in bookmarked_ids %}saved{% endif %}" title="Save article">
+                {% if a.id in bookmarked_ids %}⭐{% else %}☆{% endif %}
+              </a>
+            </div>
+          </div>
+        </div>
+        {% empty %}
+        <div style="grid-column:1/-1;text-align:center;padding:3rem;color:var(--text-muted);">
+          No articles yet. <a href="{% url 'add_article' %}" style="color:var(--accent);">Add the first one →</a>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- City News -->
+    {% if city_news %}
+    <div style="margin-bottom:2.5rem;" class="reveal">
+      <div class="sh"><h2>🏙️ City News</h2><a href="#">All cities →</a></div>
+      <div class="g2">
+        {% for a in city_news %}
+        <a href="{% url 'article_detail' a.id %}">
+          <div class="nc nc-h">
+            <div class="nci">
+              {% with a.media.first as m %}{% if m and m.media_upload %}<img src="{{ m.media_upload.url }}" alt="" loading="lazy">{% else %}<div class="nci-ph">🏙️</div>{% endif %}{% endwith %}
+              <span class="ctag">{{ a.city|default:"City" }}</span>
+            </div>
+            <div class="ncb">
+              <div class="ncm"><span>{{ a.category|default:"Local" }}</span><span>{{ a.created_at|date:"M d" }}</span></div>
+              <div class="nct">{{ a.title }}</div>
+            </div>
+          </div>
+        </a>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- State News -->
+    {% if state_news %}
+    <div style="margin-bottom:2.5rem;" class="reveal">
+      <div class="sh"><h2>🗺️ State News</h2><a href="#">All states →</a></div>
+      <div class="g2">
+        {% for a in state_news %}
+        <a href="{% url 'article_detail' a.id %}">
+          <div class="nc nc-h">
+            <div class="nci">
+              {% with a.media.first as m %}{% if m and m.media_upload %}<img src="{{ m.media_upload.url }}" alt="" loading="lazy">{% else %}<div class="nci-ph">🗺️</div>{% endif %}{% endwith %}
+              <span class="ctag">{{ a.state|default:"State" }}</span>
+            </div>
+            <div class="ncb">
+              <div class="ncm"><span>{{ a.category|default:"State" }}</span><span>{{ a.created_at|date:"M d" }}</span></div>
+              <div class="nct">{{ a.title }}</div>
+            </div>
+          </div>
+        </a>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+  </div><!-- /main col -->
+
+  <!-- SIDEBAR -->
+  <aside>
+    <div class="wgt reveal">
+      <div class="wt">🔥 Trending</div>
+      {% for a in trending|slice:":6" %}
+      <div class="tri">
+        <span class="trn">{{ forloop.counter }}</span>
+        <div>
+          <div class="trt"><a href="{% url 'article_detail' a.id %}">{{ a.title|truncatechars:58 }}</a></div>
+          <div class="trm">👁 {{ a.views_count }} · {{ a.city|default:"General" }}</div>
+        </div>
+      </div>
+      {% empty %}<p style="color:var(--text-muted);font-size:.85rem;">No trending data yet.</p>{% endfor %}
+    </div>
+
+    <div class="wgt reveal reveal-delay-1">
+      <div class="wt">📂 Categories</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;">
+        {% for cat in categories %}
+        <a href="#" style="display:inline-block;padding:4px 11px;background:var(--bg-body);border:1px solid var(--border);border-radius:20px;font-size:.74rem;font-weight:600;color:var(--text-main);transition:all .2s;"
+          onmouseover="this.style.background='var(--accent)';this.style.color='#fff';this.style.borderColor='var(--accent)'"
+          onmouseout="this.style.background='var(--bg-body)';this.style.color='var(--text-main)';this.style.borderColor='var(--border)'">{{ cat }}</a>
+        {% empty %}<span style="color:var(--text-muted);font-size:.82rem;">No categories yet.</span>{% endfor %}
+      </div>
+    </div>
+
+    <div class="adbox reveal reveal-delay-2">
+      <div class="adlbl">Advertisement</div>
+      <h4>Advertise With Us</h4>
+      <p>Reach thousands of local readers across Gujarat &amp; Maharashtra.</p>
+      <a href="{% url 'add_payment' %}">Get Started →</a>
+    </div>
+
+    <div class="wgt reveal reveal-delay-3">
+      <div class="wt">📍 News Near Me</div>
+      <p style="font-size:.82rem;color:var(--text-muted);margin-bottom:.9rem;">Select your city for hyperlocal news.</p>
+      <select onchange="navigateCity(this.value)" style="width:100%;background:var(--bg-body);border:1px solid var(--border);border-radius:8px;padding:.5rem .75rem;font-size:.85rem;color:var(--text-main);cursor:pointer;">
+        <option value="">Choose your city…</option>
+        {% for city in cities %}<option value="{{ city }}">{{ city }}</option>{% endfor %}
+      </select>
+    </div>
+  </aside>
+</div>
+
+<!-- ══ NEWSLETTER ══ -->
+{% if not request.user.is_authenticated %}
+<div class="nlband reveal">
+  <h2>📬 Stay Informed</h2>
+  <p>Breaking news and local updates delivered to your inbox every morning.</p>
+  <form class="nlform" onsubmit="return false;">
+    <input type="email" placeholder="Enter your email address…">
+    <button type="submit">Subscribe Free</button>
+  </form>
+</div>
+{% endif %}
+
+</div><!-- /hw -->
+
+<script>
+// Re-run reveal observer for dynamically added elements
+document.querySelectorAll('.reveal').forEach(el => {
+  if (!el.classList.contains('visible')) {
+    const obs = new IntersectionObserver((entries) => {
+      entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); obs.unobserve(e.target); } });
+    }, { threshold: 0.08 });
+    obs.observe(el);
+  }
+});
+</script>
+{% endblock %}

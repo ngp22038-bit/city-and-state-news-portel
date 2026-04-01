@@ -1,0 +1,264 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}The Daily Portal | City & State News{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+<!-- ── MOBILE MENU ── -->
+<div class="mobile-menu" id="mobileMenu">
+  <button class="mobile-menu-close" onclick="closeMobileMenu()"><i class="fas fa-xmark"></i></button>
+  <a href="{% url 'home' %}"><i class="fas fa-house fa-fw"></i> Home</a>
+  <a href="{% url 'category' 'Politics' %}"><i class="fas fa-landmark fa-fw"></i> Politics</a>
+  <a href="{% url 'category' 'Sports' %}"><i class="fas fa-trophy fa-fw"></i> Sports</a>
+  <a href="{% url 'category' 'Jobs' %}"><i class="fas fa-briefcase fa-fw"></i> Jobs</a>
+  <a href="{% url 'category' 'Events' %}"><i class="fas fa-calendar fa-fw"></i> Events</a>
+  <a href="{% url 'category' 'Business' %}"><i class="fas fa-chart-line fa-fw"></i> Business</a>
+  <a href="{% url 'category' 'Education' %}"><i class="fas fa-graduation-cap fa-fw"></i> Education</a>
+  <a href="{% url 'live_news' %}"><i class="fas fa-satellite-dish fa-fw"></i> Live News</a>
+  <hr style="border-color:rgba(255,255,255,.12);margin:1rem 0;">
+  {% if request.user.is_authenticated %}
+    {% if request.user.role == 'owner' %}
+      <a href="{% url 'owner_dashboard' %}"><i class="fas fa-pen-nib fa-fw"></i> Reporter Panel</a>
+      <a href="{% url 'add_article' %}"><i class="fas fa-plus fa-fw"></i> Add Article</a>
+    {% else %}
+      <a href="{% url 'user_dashboard' %}"><i class="fas fa-newspaper fa-fw"></i> My Feed</a>
+    {% endif %}
+    <a href="{% url 'logout' %}"><i class="fas fa-right-from-bracket fa-fw"></i> Logout</a>
+  {% else %}
+    <a href="{% url 'login' %}"><i class="fas fa-right-to-bracket fa-fw"></i> Login</a>
+    <a href="{% url 'signup' %}"><i class="fas fa-user-plus fa-fw"></i> Subscribe</a>
+  {% endif %}
+</div>
+
+<!-- ── BREAKING NEWS TICKER ── -->
+<div class="ticker-wrap">
+  <div class="ticker-label"><span style="color:#fff;font-size:.9rem;">🔴</span> Breaking</div>
+  <div class="ticker" id="tickerTrack">
+    <span class="ticker__item">📰 Market Surge: Global indices touch record highs.</span>
+    <span class="ticker__item">🏙️ City Update: New smart transit system launched in Ahmedabad.</span>
+    <span class="ticker__item">🗳️ State Politics: Gujarat budget sets new precedent for education.</span>
+    <span class="ticker__item">⚡ Tech Breakthrough: AI reaches new milestone in medical research.</span>
+    <span class="ticker__item">🌿 Climate Report: Renewable energy adoption exceeds 2026 targets.</span>
+    <span class="ticker__item">🏏 Sports: India wins T20 series 3–1 against Australia.</span>
+  </div>
+</div>
+
+<!-- ── MAIN HEADER ── -->
+<header id="main-header">
+  <div class="header-inner">
+
+    <!-- Logo -->
+    <a href="{% url 'home' %}" class="logo">
+      <span class="logo-dot"></span>The Daily Portal
+    </a>
+
+    <!-- Center Search -->
+    <form method="get" action="{% url 'search_articles' %}" class="header-search">
+      <input type="text" name="q" placeholder="Search news, cities, topics…" autocomplete="off">
+      <button type="submit" aria-label="Search"><i class="fas fa-search"></i></button>
+    </form>
+
+    <!-- Right: Nav + Icons -->
+    <div class="header-right">
+      <div class="nav-links">
+        {% if request.user.is_authenticated %}
+          {% if request.user.role == 'owner' %}
+            <a href="{% url 'owner_dashboard' %}">Reporter</a>
+            <a href="{% url 'add_article' %}">+ Article</a>
+          {% else %}
+            <a href="{% url 'user_dashboard' %}">My Feed</a>
+          {% endif %}
+          <a href="{% url 'logout' %}" style="color:var(--text-light);">Logout</a>
+        {% else %}
+          <a href="{% url 'login' %}">Login</a>
+          <a href="{% url 'signup' %}" class="btn-subscribe">Subscribe</a>
+        {% endif %}
+      </div>
+
+      <!-- Notification Bell -->
+      <div class="icon-btn notif-bell" title="Notifications" role="button" aria-label="Notifications">
+        <i class="fas fa-bell" style="font-size:.95rem;"></i>
+        <span class="notif-dot"></span>
+      </div>
+
+      <!-- Theme Toggle
+      <button class="icon-btn btn-theme" id="theme-toggle" title="Toggle dark mode" aria-label="Toggle theme">
+        <i class="fas fa-moon" id="theme-icon" style="font-size:.9rem;"></i>
+      </button> -->
+
+      <!-- Hamburger -->
+      <button class="hamburger" onclick="openMobileMenu()" aria-label="Open menu">
+        <i class="fas fa-bars" style="font-size:1.2rem;"></i>
+      </button>
+    </div>
+
+  </div>
+</header>
+
+<!-- ── CATEGORY NAV ── -->
+<div class="cat-bar">
+  <div class="cat-bar-inner">
+    <a href="{% url 'home' %}" class="cat-link {% block cat_home %}{% endblock %}">🏠 Home</a>
+    <a href="{% url 'all_city_news' %}" class="cat-link {% block cat_city %}{% endblock %}">🏙️ City</a>
+    <a href="{% url 'all_state_news' %}" class="cat-link {% block cat_state %}{% endblock %}">🗺️ State</a>
+    <a href="{% url 'category' 'Politics' %}"     class="cat-link {% block cat_politics %}{% endblock %}">🏛️ Politics</a>
+    <a href="{% url 'category' 'Sports' %}"       class="cat-link {% block cat_sports %}{% endblock %}">🏏 Sports</a>
+    <a href="{% url 'category' 'Jobs' %}"         class="cat-link {% block cat_jobs %}{% endblock %}">💼 Jobs</a>
+    <a href="{% url 'category' 'Events' %}"       class="cat-link {% block cat_events %}{% endblock %}">📅 Events</a>
+    <a href="{% url 'category' 'Business' %}"     class="cat-link {% block cat_business %}{% endblock %}">📈 Business</a>
+    <a href="{% url 'category' 'Education' %}"    class="cat-link {% block cat_education %}{% endblock %}">🎓 Education</a>
+    <a href="{% url 'category' 'Trending' %}"     class="cat-link highlight {% block cat_trending %}{% endblock %}">🔥 Trending</a>
+    <a href="{% url 'live_news' %}" class="cat-link" style="color:var(--red);font-weight:700;">📡 Live</a>
+  </div>
+</div>
+
+<!-- ── LOCATION BAR ── -->
+<div class="loc-bar">
+  <div class="loc-bar-inner">
+    <span class="loc-label"><i class="fas fa-location-dot"></i> Location:</span>
+    <select class="loc-select" id="citySelector" onchange="navigateCity(this.value)">
+      <option value="">Select City</option>
+      {% block city_options %}{% endblock %}
+    </select>
+    <span class="loc-sep">|</span>
+    <select class="loc-select" id="stateSelector" onchange="navigateState(this.value)">
+      <option value="">Select State</option>
+      {% block state_options %}{% endblock %}
+    </select>
+    <span class="loc-sep">|</span>
+    <div class="weather-widget" id="weatherWidget" style="display:none;">
+      <i class="fas fa-sun" style="color:#f59e0b;font-size:.8rem;"></i>
+      <span id="weatherText"></span>
+    </div>
+    <div class="lang-toggle">
+      <button onclick="setLang('en')" id="btn-en" class="lang-btn lang-btn-active">EN</button>
+      <button onclick="setLang('gu')" id="btn-gu" class="lang-btn">ગુ</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── ALERTS ── -->
+{% if messages %}
+<div class="alerts">
+  {% for message in messages %}
+  <div class="alert alert-{{ message.tags|default:'info' }}">{{ message }}</div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<!-- ── PAGE CONTENT ── -->
+<main>{% block content %}{% endblock %}</main>
+
+<!-- ── FOOTER ── -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-col">
+      <div class="footer-logo"><span style="width:10px;height:10px;background:var(--accent);border-radius:50%;display:inline-block;flex-shrink:0;"></span> The Daily Portal</div>
+      <p style="font-size:.88rem;line-height:1.75;color:rgba(255,255,255,.55);margin-bottom:1.5rem;">Hyperlocal journalism for every city and state. Trusted, fast, and community-driven news since 2020.</p>
+      <div style="display:flex;gap:10px;">
+        <a href="#" class="social-icon"><i class="fab fa-facebook-f"></i></a>
+        <a href="#" class="social-icon"><i class="fab fa-twitter"></i></a>
+        <a href="#" class="social-icon"><i class="fab fa-instagram"></i></a>
+        <a href="#" class="social-icon"><i class="fab fa-youtube"></i></a>
+        <a href="#" class="social-icon social-wa"><i class="fab fa-whatsapp"></i></a>
+      </div>
+    </div>
+    <div class="footer-col">
+      <h4>Sections</h4>
+      <ul class="footer-links">
+        <li><a href="#">Politics</a></li>
+        <li><a href="#">Business</a></li>
+        <li><a href="#">Technology</a></li>
+        <li><a href="#">Sports</a></li>
+        <li><a href="#">Education</a></li>
+        <li><a href="#">Culture</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Cities</h4>
+      <ul class="footer-links">
+        <li><a href="{% url 'city_news' 'Ahmedabad' %}">Ahmedabad</a></li>
+        <li><a href="{% url 'city_news' 'Surat' %}">Surat</a></li>
+        <li><a href="{% url 'city_news' 'Mumbai' %}">Mumbai</a></li>
+        <li><a href="{% url 'city_news' 'Pune' %}">Pune</a></li>
+        <li><a href="{% url 'city_news' 'Delhi' %}">Delhi</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Company</h4>
+      <ul class="footer-links">
+        <li><a href="#">About Us</a></li>
+        <li><a href="#">Careers</a></li>
+        <li><a href="#">Ethics Code</a></li>
+        <li><a href="#">Help Center</a></li>
+        <li><a href="#">Privacy Policy</a></li>
+        <li><a href="#">Terms of Service</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">&copy; 2026 City &amp; State News Media Inc. All rights reserved.</div>
+</footer>
+
+<script>
+// ── Theme ──
+const html = document.documentElement;
+const themeBtn = document.getElementById('theme-toggle');
+const themeIcon = document.getElementById('theme-icon');
+function applyTheme(t) {
+  html.setAttribute('data-theme', t);
+  if (themeIcon) {
+    themeIcon.className = t === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+    themeIcon.style.fontSize = '.9rem';
+  }
+}
+applyTheme(localStorage.getItem('theme') || 'light');
+if (themeBtn) {
+  themeBtn.addEventListener('click', () => {
+    const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    localStorage.setItem('theme', next);
+    applyTheme(next);
+  });
+}
+
+// ── Header scroll shrink ──
+window.addEventListener('scroll', () => {
+  const h = document.getElementById('main-header');
+  h.style.boxShadow = window.scrollY > 40 ? '0 4px 20px rgba(0,0,0,.1)' : 'none';
+});
+
+// ── Mobile menu ──
+function openMobileMenu()  { document.getElementById('mobileMenu').classList.add('open'); document.body.style.overflow='hidden'; }
+function closeMobileMenu() { document.getElementById('mobileMenu').classList.remove('open'); document.body.style.overflow=''; }
+
+// ── Location navigation ──
+function navigateCity(city)   { if (city) window.location.href = '/city/' + encodeURIComponent(city) + '/'; }
+function navigateState(state) { if (state) window.location.href = '/state/' + encodeURIComponent(state) + '/'; }
+
+// ── Language toggle ──
+function setLang(lang) {
+  localStorage.setItem('lang', lang);
+  document.getElementById('btn-en').classList.toggle('lang-btn-active', lang === 'en');
+  document.getElementById('btn-gu').classList.toggle('lang-btn-active', lang === 'gu');
+}
+setLang(localStorage.getItem('lang') || 'en');
+
+// ── Weather widget (hidden — API unavailable) ──
+document.getElementById('weatherWidget').style.display = 'none';
+
+// ── Scroll Reveal ──
+const revealEls = document.querySelectorAll('.reveal');
+const revealObs = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); revealObs.unobserve(e.target); } });
+}, { threshold: 0.1 });
+revealEls.forEach(el => revealObs.observe(el));
+</script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

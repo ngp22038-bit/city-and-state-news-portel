@@ -1,0 +1,533 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Manage Articles | The Daily Portal{% endblock %}
+
+{% block city_options %}{% for city in cities %}<option value="{{ city }}">{{ city }}</option>{% endfor %}{% endblock %}
+{% block state_options %}{% for state in states %}<option value="{{ state }}">{{ state }}</option>{% endfor %}{% endblock %}
+
+{% block extra_head %}
+<style>
+.ma-wrap { max-width: var(--container); margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+
+/* ── Header ── */
+.ma-header {
+  background: linear-gradient(135deg, #0d1b2a 0%, #1b2d3e 100%);
+  border-radius: var(--radius-lg); padding: 1.75rem 2rem;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap;
+  box-shadow: var(--shadow-lg);
+}
+.ma-header h1 { font-family: var(--font-serif); font-size: 1.75rem; font-weight: 900; color: #fff; margin: 0; }
+.ma-header p  { color: rgba(255,255,255,.5); font-size: .82rem; margin-top: .2rem; }
+.ma-new-btn {
+  display: inline-flex; align-items: center; gap: 7px;
+  background: var(--red); color: #fff; font-weight: 700; font-size: .85rem;
+  padding: .6rem 1.3rem; border-radius: 50px; border: none; cursor: pointer;
+  text-decoration: none; transition: background .2s, transform .15s; white-space: nowrap;
+}
+.ma-new-btn:hover { background: var(--red-dark); transform: translateY(-1px); }
+
+/* ── Stat Cards ── */
+.ma-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
+.ma-stat {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); padding: 1.25rem 1.5rem;
+  display: flex; align-items: center; gap: 1rem;
+  box-shadow: var(--shadow-sm);
+}
+.ma-stat-icon {
+  width: 46px; height: 46px; border-radius: var(--radius);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.2rem; flex-shrink: 0;
+}
+.ma-stat-icon.navy  { background: rgba(13,27,42,.08); color: #0d1b2a; }
+.ma-stat-icon.red   { background: rgba(230,57,70,.1);  color: var(--red); }
+.ma-stat-icon.green { background: rgba(16,185,129,.1); color: #10b981; }
+.ma-stat-icon.gold  { background: rgba(245,158,11,.1); color: var(--gold); }
+.ma-stat-val  { font-size: 1.6rem; font-weight: 800; color: var(--text); line-height: 1; }
+.ma-stat-lbl  { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: var(--text-muted); margin-top: .2rem; }
+
+/* ── Filter Bar ── */
+.ma-filters {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); padding: 1rem 1.25rem;
+  display: flex; flex-wrap: wrap; gap: .75rem; align-items: center;
+  margin-bottom: 1.5rem; box-shadow: var(--shadow-sm);
+}
+.ma-search-wrap { position: relative; flex: 1; min-width: 200px; }
+.ma-search-wrap i { position: absolute; left: .85rem; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: .8rem; }
+.ma-search-wrap input {
+  width: 100%; padding: .55rem .9rem .55rem 2.2rem;
+  background: var(--bg); border: 1.5px solid var(--border);
+  border-radius: var(--radius); font-size: .85rem; color: var(--text);
+  font-family: var(--font-sans); margin: 0;
+  transition: border-color .2s, box-shadow .2s;
+}
+.ma-search-wrap input:focus { outline: none; border-color: var(--red); box-shadow: 0 0 0 3px rgba(230,57,70,.1); }
+.ma-select {
+  padding: .55rem .9rem; background: var(--bg); border: 1.5px solid var(--border);
+  border-radius: var(--radius); font-size: .85rem; color: var(--text);
+  font-family: var(--font-sans); cursor: pointer;
+  transition: border-color .2s;
+}
+.ma-select:focus { outline: none; border-color: var(--red); }
+.ma-filter-btn {
+  padding: .55rem 1.2rem; background: var(--navy); color: #fff;
+  border: none; border-radius: var(--radius); font-size: .85rem;
+  font-weight: 700; cursor: pointer; font-family: var(--font-sans);
+  transition: background .2s; margin: 0; width: auto;
+}
+.ma-filter-btn:hover { background: var(--red); transform: none; }
+.ma-clear-btn {
+  padding: .55rem 1rem; background: transparent; color: var(--text-muted);
+  border: 1.5px solid var(--border); border-radius: var(--radius);
+  font-size: .85rem; font-weight: 600; cursor: pointer;
+  font-family: var(--font-sans); text-decoration: none;
+  transition: border-color .2s, color .2s; margin: 0; width: auto;
+}
+.ma-clear-btn:hover { border-color: var(--red); color: var(--red); transform: none; }
+
+/* ── Table Card ── */
+.ma-table-card {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+.ma-table-top {
+  padding: .9rem 1.5rem; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  font-size: .82rem; color: var(--text-muted);
+}
+.ma-table-top strong { color: var(--text); }
+table { width: 100%; border-collapse: collapse; }
+thead tr { background: var(--bg); border-bottom: 2px solid var(--border); }
+thead th {
+  padding: .75rem 1rem; font-size: .7rem; font-weight: 800;
+  text-transform: uppercase; letter-spacing: .7px; color: var(--text-muted);
+  text-align: left; white-space: nowrap;
+}
+tbody tr { border-bottom: 1px solid var(--border); transition: background .15s; }
+tbody tr:hover { background: var(--bg); }
+tbody tr:last-child { border-bottom: none; }
+td { padding: .6rem 1rem; font-size: .85rem; color: var(--text); vertical-align: middle; }
+td.td-actions { padding: .5rem .75rem; vertical-align: middle; }
+
+/* ── Thumb ── */
+.art-thumb {
+  width: 46px; height: 46px; border-radius: var(--radius);
+  overflow: hidden; background: var(--bg-alt); flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text-faint); font-size: 1.1rem;
+}
+.art-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.art-cell { display: flex; align-items: center; gap: .75rem; }
+.art-cell-text { min-width: 0; }
+.art-cell-title { font-weight: 700; color: var(--text); line-height: 1.3; margin-bottom: .2rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 220px; }
+.art-cell-excerpt { font-size: .75rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 220px; }
+
+/* ── Badges ── */
+.cat-badge {
+  display: inline-block; padding: 2px 10px; border-radius: 99px;
+  font-size: .7rem; font-weight: 700;
+  background: rgba(13,27,42,.08); color: var(--navy);
+}
+.status-pub {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 3px 10px; border-radius: 99px; font-size: .7rem; font-weight: 700;
+  background: rgba(16,185,129,.1); color: #059669;
+}
+.status-draft {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 3px 10px; border-radius: 99px; font-size: .7rem; font-weight: 700;
+  background: rgba(245,158,11,.1); color: #d97706;
+}
+.status-pub::before, .status-draft::before {
+  content: ''; width: 6px; height: 6px; border-radius: 50%;
+}
+.status-pub::before   { background: #10b981; }
+.status-draft::before { background: #f59e0b; }
+.trend-badge {
+  display: inline-flex; align-items: center; gap: 3px;
+  font-size: .65rem; font-weight: 800; color: #ea580c;
+  background: rgba(234,88,12,.08); padding: 2px 7px; border-radius: 99px;
+}
+
+/* ── Action Buttons ── */
+.act-group {
+  display: inline-flex; flex-direction: column; align-items: center; gap: 3px;
+}
+.act-row { display: flex; gap: 3px; align-items: center; justify-content: center; }
+.act-row + .act-row { border-top: 1px solid var(--border); padding-top: 3px; }
+.act-btn {
+  width: 28px; height: 28px;
+  min-width: 28px; max-width: 28px;
+  border-radius: var(--radius-sm);
+  display: inline-flex; align-items: center; justify-content: center;
+  border: none; cursor: pointer; font-size: .75rem;
+  transition: background .15s, color .15s, transform .1s; text-decoration: none;
+  flex-shrink: 0; padding: 0; margin: 0; line-height: 1; box-sizing: border-box;
+  font-weight: normal; letter-spacing: 0;
+}
+.act-btn:hover { transform: translateY(-1px); }
+.act-btn.view   { background: rgba(14,165,233,.12); color: #0ea5e9; }
+.act-btn.edit   { background: rgba(245,158,11,.12); color: #d97706; }
+.act-btn.delete { background: rgba(230,57,70,.12);  color: var(--red); }
+.act-btn.view:hover   { background: rgba(14,165,233,.25); color: #0ea5e9; }
+.act-btn.edit:hover   { background: rgba(245,158,11,.25); color: #d97706; }
+.act-btn.delete:hover { background: rgba(230,57,70,.25);  color: var(--red); }
+
+/* ── Author chip ── */
+.author-chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: .8rem; color: var(--text-sub);
+}
+.author-av {
+  width: 26px; height: 26px; border-radius: 50%;
+  background: linear-gradient(135deg, #0d1b2a, #e63946);
+  color: #fff; font-size: .7rem; font-weight: 800;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+
+/* ── Empty ── */
+.ma-empty { text-align: center; padding: 4rem 1rem; color: var(--text-muted); }
+.ma-empty i { font-size: 3rem; opacity: .2; margin-bottom: 1rem; display: block; }
+
+/* ── Pagination ── */
+.ma-pagination {
+  padding: .9rem 1.5rem; border-top: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: .75rem; background: var(--bg);
+}
+.pg-info { font-size: .82rem; color: var(--text-muted); }
+.pg-info strong { color: var(--text); }
+.pg-btns { display: flex; gap: .35rem; }
+.pg-btn {
+  min-width: 32px; height: 32px; padding: 0 .6rem;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: 1.5px solid var(--border); border-radius: var(--radius-sm);
+  font-size: .82rem; font-weight: 600; color: var(--text-muted);
+  text-decoration: none; transition: all .15s; background: var(--bg-card);
+}
+.pg-btn:hover { border-color: var(--red); color: var(--red); }
+.pg-btn.active { background: var(--red); color: #fff; border-color: var(--red); }
+
+/* Bookmark */
+.bm-btn        { background: rgba(245,158,11,.1); color: #d97706; }
+.bm-btn:hover  { background: rgba(245,158,11,.2); color: #b45309; }
+.bm-active     { background: #d97706; color: #fff; }
+.bm-active:hover { background: #b45309; color: #fff; }
+/* Pin */
+.pin-btn       { background: rgba(13,27,42,.08); color: var(--navy); }
+.pin-btn:hover { background: rgba(13,27,42,.15); color: var(--navy); }
+.pin-active    { background: var(--red);      color: #fff; }
+.pin-active:hover { background: var(--red-dark); color: #fff; }
+tr.pinned-row { background: rgba(230,57,70,.04) !important; }
+tr.pinned-row td:first-child { border-left: 3px solid var(--red); }
+
+/* ── Delete Modal ── */
+#deleteModal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 9999; align-items: center; justify-content: center; padding: 1rem; }
+#deleteModal.open { display: flex; }
+.del-modal-box {
+  background: var(--bg-card); border-radius: var(--radius-lg);
+  padding: 2rem; max-width: 380px; width: 100%; text-align: center;
+  box-shadow: var(--shadow-xl);
+}
+.del-modal-icon {
+  width: 60px; height: 60px; background: rgba(230,57,70,.1);
+  border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 1rem; font-size: 1.5rem; color: var(--red);
+}
+.del-modal-box h3 { font-family: var(--font-serif); font-size: 1.3rem; font-weight: 800; margin-bottom: .4rem; }
+.del-modal-box p  { font-size: .875rem; color: var(--text-muted); margin-bottom: 1.5rem; }
+.del-modal-btns { display: flex; gap: .75rem; }
+.del-cancel {
+  flex: 1; padding: .7rem; border: 1.5px solid var(--border);
+  border-radius: var(--radius); background: transparent; color: var(--text);
+  font-weight: 600; font-size: .875rem; cursor: pointer;
+  font-family: var(--font-sans); transition: background .2s; margin: 0; width: auto;
+}
+.del-cancel:hover { background: var(--bg); transform: none; }
+.del-confirm {
+  flex: 1; padding: .7rem; background: var(--red); color: #fff;
+  border: none; border-radius: var(--radius); font-weight: 700;
+  font-size: .875rem; cursor: pointer; font-family: var(--font-sans);
+  transition: background .2s; margin: 0; width: auto;
+}
+.del-confirm:hover { background: var(--red-dark); transform: none; }
+
+@media (max-width: 1024px) { .ma-stats { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 768px)  {
+  .ma-stats { grid-template-columns: repeat(2, 1fr); }
+  .ma-wrap  { padding: 1rem 1rem 3rem; }
+  .ma-header { flex-direction: column; align-items: flex-start; }
+  .desktop-only { display: none; }
+  table { font-size: .78rem; }
+  td, th { padding: .6rem .7rem; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- DELETE MODAL -->
+<div id="deleteModal">
+  <div class="del-modal-box">
+    <div class="del-modal-icon"><i class="fas fa-trash-can"></i></div>
+    <h3>Delete Article?</h3>
+    <p id="deleteModalMsg">This action cannot be undone.</p>
+    <div class="del-modal-btns">
+      <button class="del-cancel" onclick="closeDeleteModal()">Cancel</button>
+      <form id="deleteForm" method="post" style="flex:1;margin:0;">
+        {% csrf_token %}
+        <button type="submit" class="del-confirm" style="width:100%;">Delete</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="ma-wrap">
+
+  <!-- HEADER -->
+  <div class="ma-header">
+    <div>
+      <h1>📋 Manage Articles</h1>
+      <p>City &amp; State News Portal — Content Management</p>
+    </div>
+    <a href="{% url 'add_article' %}" class="ma-new-btn">
+      <i class="fas fa-plus"></i> New Article
+    </a>
+  </div>
+
+  <!-- STAT CARDS -->
+  <div class="ma-stats">
+    <div class="ma-stat">
+      <div class="ma-stat-icon navy"><i class="fas fa-newspaper"></i></div>
+      <div><div class="ma-stat-val">{{ total_articles }}</div><div class="ma-stat-lbl">Total Articles</div></div>
+    </div>
+    <div class="ma-stat">
+      <div class="ma-stat-icon red"><i class="fas fa-eye"></i></div>
+      <div><div class="ma-stat-val">{{ total_views }}</div><div class="ma-stat-lbl">Total Views</div></div>
+    </div>
+    <div class="ma-stat">
+      <div class="ma-stat-icon green"><i class="fas fa-circle-check"></i></div>
+      <div><div class="ma-stat-val">{{ published_count }}</div><div class="ma-stat-lbl">Published</div></div>
+    </div>
+    <div class="ma-stat">
+      <div class="ma-stat-icon gold"><i class="fas fa-pen-ruler"></i></div>
+      <div><div class="ma-stat-val">{{ draft_count }}</div><div class="ma-stat-lbl">Drafts</div></div>
+    </div>
+  </div>
+
+  <!-- FILTER BAR -->
+  <form method="get" class="ma-filters">
+    <div class="ma-search-wrap">
+      <i class="fas fa-search"></i>
+      <input type="text" name="q" value="{{ q }}" placeholder="Search articles…">
+    </div>
+    <select name="category" class="ma-select" onchange="this.form.submit()">
+      <option value="">All Categories</option>
+      {% for cat in categories %}
+      <option value="{{ cat }}" {% if category == cat %}selected{% endif %}>{{ cat }}</option>
+      {% endfor %}
+    </select>
+    <select name="status" class="ma-select" onchange="this.form.submit()">
+      <option value="">All Status</option>
+      <option value="published" {% if status == 'published' %}selected{% endif %}>Published</option>
+      <option value="draft"     {% if status == 'draft'     %}selected{% endif %}>Draft</option>
+    </select>
+    <select name="sort" class="ma-select" onchange="this.form.submit()">
+      <option value="latest"  {% if sort == 'latest'  %}selected{% endif %}>Latest</option>
+      <option value="views"   {% if sort == 'views'   %}selected{% endif %}>Most Viewed</option>
+      <option value="az"      {% if sort == 'az'      %}selected{% endif %}>A–Z</option>
+      <option value="oldest"  {% if sort == 'oldest'  %}selected{% endif %}>Oldest</option>
+    </select>
+    <button type="submit" class="ma-filter-btn"><i class="fas fa-filter"></i> Filter</button>
+    {% if q or category or status %}
+    <a href="{% url 'manage_articles' %}" class="ma-clear-btn"><i class="fas fa-xmark"></i> Clear</a>
+    {% endif %}
+  </form>
+
+  <!-- TABLE -->
+  <div class="ma-table-card">
+    <div class="ma-table-top">
+      <!-- <span>Showing <strong>{{ page_obj.start_index }}–{{ page_obj.end_index }}</strong> of <strong>{{ page_obj.paginator.count }}</strong> articles</span> -->
+      {% if q %}<span style="background:rgba(230,57,70,.08);color:var(--red);padding:2px 10px;border-radius:99px;font-size:.75rem;font-weight:700;">Search: "{{ q }}"</span>{% endif %}
+    </div>
+
+    <div style="overflow-x:auto;">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Article</th>
+            <th>Category</th>
+            <th class="desktop-only">Author</th>
+            <th class="desktop-only">Location</th>
+            <th class="desktop-only">Date</th>
+            <th style="text-align:center;">Views</th>
+            <th style="text-align:center;">Status</th>
+            <th style="text-align:center;min-width:110px;">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for article in articles %}
+          <tr id="row-{{ article.id }}" {% if article.id in pinned_ids %}class="pinned-row"{% endif %}>
+            <td style="color:var(--text-muted);font-size:.75rem;">{{ forloop.counter|add:page_obj.start_index|add:"-1" }}</td>
+            <td>
+              <div class="art-cell">
+                <div class="art-thumb">
+                  {% with article.media.first as m %}
+                    {% if m and m.media_upload %}<img src="{{ m.media_upload.url }}" alt="">
+                    {% else %}<i class="fas fa-image"></i>{% endif %}
+                  {% endwith %}
+                </div>
+                <div class="art-cell-text">
+                  <div class="art-cell-title">
+                    {{ article.title|truncatechars:48 }}
+                    {% if article.views_count >= trending_threshold %}
+                    <span class="trend-badge"><i class="fas fa-arrow-trend-up"></i> Trending</span>
+                    {% endif %}
+                  </div>
+                  <div class="art-cell-excerpt">{{ article.content|striptags|truncatechars:60 }}</div>
+                </div>
+              </div>
+            </td>
+            <td><span class="cat-badge">{{ article.category|default:"General" }}</span></td>
+            <td class="desktop-only">
+              <div class="author-chip">
+                <div class="author-av">{{ article.author.first_name|default:"A"|slice:":1"|upper }}</div>
+                {{ article.author.first_name|default:article.author.email|truncatechars:14 }}
+              </div>
+            </td>
+            <td class="desktop-only" style="font-size:.78rem;color:var(--text-muted);">
+              {% if article.city or article.state %}
+                <i class="fas fa-location-dot" style="color:var(--red);margin-right:3px;"></i>
+                {{ article.city|default:"" }}{% if article.city and article.state %}, {% endif %}{{ article.state|default:"" }}
+              {% else %}—{% endif %}
+            </td>
+            <td class="desktop-only" style="font-size:.78rem;color:var(--text-muted);white-space:nowrap;">
+              {{ article.created_at|date:"M d, Y" }}<br>
+              <span style="font-size:.7rem;">{{ article.created_at|time:"h:i A" }}</span>
+            </td>
+            <td style="text-align:center;font-size:.8rem;font-weight:700;">{{ article.views_count }}</td>
+            <td style="text-align:center;">
+              {% if article.is_published %}
+                <span class="status-pub">Published</span>
+              {% else %}
+                <span class="status-draft">Draft</span>
+              {% endif %}
+            </td>
+            <td class="td-actions">
+              <div class="act-group">
+                <div class="act-row">
+                  <a href="{% url 'article_detail' article.id %}" class="act-btn view" title="View"><i class="fas fa-eye"></i></a>
+                  <a href="{% url 'edit_article' article.id %}" class="act-btn edit" title="Edit"><i class="fas fa-pen"></i></a>
+                  <button onclick="toggleBookmark({{ article.id }}, this)" class="act-btn bm-btn {% if article.id in bookmarked_ids %}bm-active{% endif %}" title="Bookmark"><i class="fas fa-bookmark"></i></button>
+                </div>
+                <div class="act-row">
+                  <button onclick="togglePin({{ article.id }}, this)" class="act-btn pin-btn {% if article.id in pinned_ids %}pin-active{% endif %}" title="{% if article.id in pinned_ids %}Unpin{% else %}Pin{% endif %}"><i class="fas fa-thumbtack"></i></button>
+                  <button onclick="openDeleteModal({{ article.id }}, '{{ article.title|escapejs }}')" class="act-btn delete" title="Delete"><i class="fas fa-trash"></i></button>
+                </div>
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="9">
+              <div class="ma-empty">
+                <i class="fas fa-inbox"></i>
+                <p style="font-weight:700;font-size:1rem;margin-bottom:.4rem;">No articles found</p>
+                <p style="font-size:.875rem;margin-bottom:1.25rem;">{% if q %}No results for "{{ q }}".{% else %}Start by creating your first article.{% endif %}</p>
+                <a href="{% url 'add_article' %}" class="ma-new-btn" style="display:inline-flex;">
+                  <i class="fas fa-plus"></i> Create Article
+                </a>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- PAGINATION -->
+    {% if page_obj.paginator.num_pages > 1 %}
+    <div class="ma-pagination">
+      <span class="pg-info">Showing <strong>{{ page_obj.start_index }}–{{ page_obj.end_index }}</strong> of <strong>{{ page_obj.paginator.count }}</strong></span>
+      <div class="pg-btns">
+        {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}&q={{ q }}&category={{ category }}&status={{ status }}&sort={{ sort }}" class="pg-btn"><i class="fas fa-chevron-left" style="font-size:.7rem;"></i></a>
+        {% endif %}
+        {% for num in page_obj.paginator.page_range %}
+          {% if page_obj.number == num %}
+            <span class="pg-btn active">{{ num }}</span>
+          {% elif num > page_obj.number|add:"-3" and num < page_obj.number|add:"3" %}
+            <a href="?page={{ num }}&q={{ q }}&category={{ category }}&status={{ status }}&sort={{ sort }}" class="pg-btn">{{ num }}</a>
+          {% endif %}
+        {% endfor %}
+        {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}&q={{ q }}&category={{ category }}&status={{ status }}&sort={{ sort }}" class="pg-btn"><i class="fas fa-chevron-right" style="font-size:.7rem;"></i></a>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+
+<script>
+const CSRF = '{{ csrf_token }}';
+
+// Store original row order on page load
+const tbody = document.querySelector('tbody');
+const originalOrder = {};
+Array.from(tbody.querySelectorAll('tr[id^="row-"]')).forEach((row, idx) => {
+  originalOrder[row.id] = idx;
+});
+
+function openDeleteModal(id, title) {
+  document.getElementById('deleteModalMsg').textContent = 'Delete "' + title + '"? This cannot be undone.';
+  document.getElementById('deleteForm').action = '/news/delete-article/' + id + '/';
+  document.getElementById('deleteModal').classList.add('open');
+}
+function closeDeleteModal() {
+  document.getElementById('deleteModal').classList.remove('open');
+}
+document.getElementById('deleteModal').addEventListener('click', function(e) {
+  if (e.target === this) closeDeleteModal();
+});
+
+function toggleBookmark(id, btn) {
+  fetch('/news/bookmark/' + id + '/', { method: 'POST', headers: {'X-CSRFToken': CSRF} })
+    .then(r => r.json()).then(() => {
+      btn.classList.toggle('bm-active');
+    }).catch(() => { btn.classList.toggle('bm-active'); });
+}
+
+function togglePin(id, btn) {
+  fetch('/news/pin-article/' + id + '/', { method: 'POST', headers: {'X-CSRFToken': CSRF} })
+    .then(r => r.json()).then(data => {
+      const row = document.getElementById('row-' + id);
+      if (data.pinned) {
+        btn.classList.add('pin-active');
+        btn.title = 'Unpin';
+        row.classList.add('pinned-row');
+        tbody.insertBefore(row, tbody.firstChild);
+      } else {
+        btn.classList.remove('pin-active');
+        btn.title = 'Pin';
+        row.classList.remove('pinned-row');
+        // Restore to original position
+        const targetIdx = originalOrder[row.id];
+        const rows = Array.from(tbody.querySelectorAll('tr[id^="row-"]'));
+        // Find the first row whose original index is greater than targetIdx
+        const after = rows.find(r => r !== row && originalOrder[r.id] > targetIdx);
+        if (after) {
+          tbody.insertBefore(row, after);
+        } else {
+          tbody.appendChild(row);
+        }
+      }
+    });
+}
+</script>
+{% endblock %}

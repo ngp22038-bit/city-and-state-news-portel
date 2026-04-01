@@ -1,0 +1,337 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}🔥 Live News | The Daily Portal{% endblock %}
+
+{% block city_options %}
+  {% for city in cities %}<option value="{{ city }}">{{ city }}</option>{% endfor %}
+{% endblock %}
+{% block state_options %}
+  {% for state in states %}<option value="{{ state }}">{{ state }}</option>{% endfor %}
+{% endblock %}
+
+{% block extra_head %}
+<style>
+.ln-wrap { max-width: var(--container); margin: 0 auto; padding: 2rem 2rem 4rem; }
+
+/* ── Header ── */
+.ln-header {
+  background: linear-gradient(135deg, #0d1b2a, #e63946);
+  border-radius: var(--radius-lg); padding: 2rem 2.5rem;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 1.5rem; margin-bottom: 2rem; flex-wrap: wrap;
+  box-shadow: var(--shadow-lg);
+}
+.ln-header h1 {
+  font-family: var(--font-serif); font-size: 2rem; font-weight: 900;
+  color: #fff; margin: 0;
+}
+.ln-header p { color: rgba(255,255,255,.7); font-size: .9rem; margin-top: .3rem; }
+.ln-refresh-btn {
+  display: inline-flex; align-items: center; gap: 7px;
+  background: #fff; color: #e63946; font-weight: 700;
+  font-size: .85rem; padding: .6rem 1.3rem; border-radius: 50px;
+  border: none; cursor: pointer; transition: all .2s; white-space: nowrap;
+}
+.ln-refresh-btn:hover { background: #fff0f1; transform: translateY(-1px); }
+.ln-refresh-btn.spinning i { animation: spin .7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Filters ── */
+.ln-filters {
+  display: flex; gap: .6rem; flex-wrap: wrap;
+  align-items: center; margin-bottom: 2rem;
+}
+.ln-filter-label { font-size: .75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: .5px; }
+.ln-cat-btn {
+  padding: .4rem 1rem; border-radius: 50px; font-size: .8rem; font-weight: 700;
+  border: 1.5px solid var(--border); background: var(--bg-card); color: var(--text);
+  cursor: pointer; transition: all .2s; text-decoration: none; display: inline-block;
+}
+.ln-cat-btn:hover, .ln-cat-btn.active {
+  background: #0d1b2a; color: #fff; border-color: #0d1b2a;
+}
+
+/* ── Section title ── */
+.ln-sec { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.2rem; padding-bottom: .5rem; border-bottom: 2px solid var(--text); }
+.ln-sec h2 { font-family: var(--font-serif); font-size: 1.35rem; margin: 0; }
+.ln-live-dot {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: .72rem; font-weight: 700; color: var(--red);
+  text-transform: uppercase; letter-spacing: .8px;
+}
+.ln-live-dot::before {
+  content: ''; width: 7px; height: 7px; background: var(--red);
+  border-radius: 50%; animation: pulse-dot 1.2s infinite;
+}
+
+/* ── Cards Grid ── */
+.ln-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.25rem; margin-bottom: 3rem; }
+
+/* ── News Card ── */
+.ln-card {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); overflow: hidden;
+  display: flex; flex-direction: column;
+  transition: transform .25s var(--ease), box-shadow .25s var(--ease);
+  box-shadow: var(--shadow-sm);
+}
+.ln-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-lg); }
+.ln-card-img {
+  height: 170px; overflow: hidden; position: relative; flex-shrink: 0;
+  background: linear-gradient(135deg, #1e293b, #334155);
+}
+.ln-card-img img {
+  width: 100%; height: 100%; object-fit: cover;
+  transition: transform .45s var(--ease);
+}
+.ln-card:hover .ln-card-img img { transform: scale(1.07); }
+.ln-card-src {
+  position: absolute; top: 8px; left: 8px;
+  background: rgba(0,0,0,.65); color: #fff; font-size: .62rem;
+  font-weight: 700; padding: 2px 8px; border-radius: 3px;
+  backdrop-filter: blur(4px); text-transform: uppercase; letter-spacing: .5px;
+}
+.ln-card-ext {
+  position: absolute; top: 8px; right: 8px;
+  background: var(--red); color: #fff; font-size: .6rem;
+  font-weight: 800; padding: 2px 7px; border-radius: 3px;
+  text-transform: uppercase; letter-spacing: .5px;
+}
+.ln-card-body { padding: 1rem; flex: 1; display: flex; flex-direction: column; }
+.ln-card-meta { font-size: .7rem; color: var(--text-muted); margin-bottom: .4rem; display: flex; justify-content: space-between; }
+.ln-card-title {
+  font-family: var(--font-serif); font-size: .95rem; font-weight: 700;
+  line-height: 1.4; color: var(--text); margin-bottom: .5rem;
+  display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2;
+  -webkit-box-orient: vertical; overflow: hidden;
+}
+.ln-card-desc {
+  font-size: .8rem; color: var(--text-muted); line-height: 1.55;
+  display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2;
+  -webkit-box-orient: vertical; overflow: hidden; margin-bottom: .75rem;
+}
+.ln-card-footer { margin-top: auto; display: flex; justify-content: space-between; align-items: center; }
+.ln-read-btn {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: #0d1b2a; color: #fff; font-size: .75rem; font-weight: 700;
+  padding: .4rem .9rem; border-radius: 50px; text-decoration: none;
+  transition: background .2s;
+}
+.ln-read-btn:hover { background: var(--red); }
+.ln-views { font-size: .7rem; color: var(--text-muted); }
+
+/* ── Skeleton ── */
+.ln-skeleton { display: none; }
+.ln-skeleton.show { display: grid; }
+.skel-card { background: var(--bg-card); border-radius: var(--radius-lg); overflow: hidden; border: 1px solid var(--border); }
+.skel-img { height: 170px; background: linear-gradient(90deg, var(--border) 25%, var(--bg-alt) 50%, var(--border) 75%); background-size: 200% 100%; animation: shimmer 1.4s infinite; }
+.skel-body { padding: 1rem; }
+.skel-line { height: 12px; border-radius: 6px; margin-bottom: 8px; background: linear-gradient(90deg, var(--border) 25%, var(--bg-alt) 50%, var(--border) 75%); background-size: 200% 100%; animation: shimmer 1.4s infinite; }
+.skel-line.w80 { width: 80%; }
+.skel-line.w60 { width: 60%; }
+.skel-line.w40 { width: 40%; }
+@keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+
+/* ── Auto-refresh bar ── */
+.ln-refresh-bar {
+  height: 3px; background: var(--border); border-radius: 99px;
+  margin-bottom: 1.5rem; overflow: hidden;
+}
+.ln-refresh-progress {
+  height: 100%; background: var(--red); border-radius: 99px;
+  width: 100%; transform-origin: left;
+  animation: countdown 30s linear infinite;
+}
+@keyframes countdown { from{transform:scaleX(1)} to{transform:scaleX(0)} }
+
+/* ── Empty ── */
+.ln-empty { text-align: center; padding: 3rem; color: var(--text-muted); grid-column: 1/-1; }
+
+@media (max-width: 768px) { .ln-wrap { padding: 1rem; } .ln-grid { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 480px) { .ln-grid { grid-template-columns: 1fr; } }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="ln-wrap">
+
+  <!-- ── HEADER ── -->
+  <div class="ln-header">
+    <div>
+      <h1>🔥 Live News</h1>
+      <p>Real-time headlines from India — auto-refreshes every 30 seconds</p>
+    </div>
+    <button class="ln-refresh-btn" id="refreshBtn" onclick="fetchLiveNews()">
+      <i class="fas fa-rotate-right" id="refreshIcon"></i> Refresh Now
+    </button>
+  </div>
+
+  <!-- ── AUTO-REFRESH PROGRESS BAR ── -->
+  <div class="ln-refresh-bar"><div class="ln-refresh-progress" id="refreshBar"></div></div>
+
+  <!-- ── CATEGORY FILTERS ── -->
+  <div class="ln-filters">
+    <span class="ln-filter-label">Filter:</span>
+    <a href="{% url 'live_news' %}" class="ln-cat-btn {% if not active_cat %}active{% endif %}">🌐 All</a>
+    {% for cat in categories %}
+    <a href="{% url 'live_news' %}?category={{ cat }}{% if active_city %}&city={{ active_city }}{% endif %}"
+       class="ln-cat-btn {% if active_cat == cat %}active{% endif %}">
+      {% if cat == 'business' %}💼{% elif cat == 'sports' %}🏏{% elif cat == 'technology' %}💻{% elif cat == 'health' %}🏥{% elif cat == 'politics' %}🏛️{% elif cat == 'entertainment' %}🎬{% endif %}
+      {{ cat|capfirst }}
+    </a>
+    {% endfor %}
+  </div>
+
+  <!-- ── INTERNAL DB ARTICLES ── -->
+  {% if internal %}
+  <div class="ln-sec" style="margin-bottom:1.2rem;">
+    <h2>📰 From Our Portal</h2>
+    <span class="ln-live-dot">Live</span>
+  </div>
+  <div class="ln-grid" style="margin-bottom:2.5rem;">
+    {% for a in internal %}
+    <div class="ln-card">
+      <div class="ln-card-img">
+        {% with a.media.first as m %}
+          {% if m and m.media_upload %}<img src="{{ m.media_upload.url }}" alt="{{ a.title }}" loading="lazy">
+          {% else %}<img src="{{ fallback_img }}" alt="{{ a.title }}" loading="lazy">{% endif %}
+        {% endwith %}
+        <span class="ln-card-src">{{ a.city|default:"India" }}</span>
+      </div>
+      <div class="ln-card-body">
+        <div class="ln-card-meta">
+          <span>{{ a.category|default:"News" }}</span>
+          <span>{{ a.created_at|timesince }} ago</span>
+        </div>
+        <div class="ln-card-title">{{ a.title }}</div>
+        <p class="ln-card-desc">{{ a.content|truncatechars:100 }}</p>
+        <div class="ln-card-footer">
+          <a href="{% url 'article_detail' a.id %}" class="ln-read-btn">Read More <i class="fas fa-arrow-right" style="font-size:.65rem;"></i></a>
+          <span class="ln-views">👁 {{ a.views_count }}</span>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- ── EXTERNAL LIVE NEWS ── -->
+  <div class="ln-sec">
+    <h2>🌐 Live Headlines</h2>
+    <span class="ln-live-dot">Auto-updating</span>
+  </div>
+
+  <!-- Skeleton loader -->
+  <div class="ln-grid ln-skeleton" id="skeletonGrid">
+    {% for i in "123456789012" %}
+    <div class="skel-card">
+      <div class="skel-img"></div>
+      <div class="skel-body">
+        <div class="skel-line w80"></div>
+        <div class="skel-line w60"></div>
+        <div class="skel-line w40"></div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Live cards injected by JS -->
+  <div class="ln-grid" id="liveGrid">
+    {% for item in external %}
+    <div class="ln-card">
+      <div class="ln-card-img">
+        <img src="{{ item.image|default:fallback_img }}" alt="{{ item.title }}"
+             loading="lazy" onerror="this.src='{{ fallback_img }}'">
+        <span class="ln-card-src">{{ item.source.name|default:"News" }}</span>
+        <span class="ln-card-ext">Live</span>
+      </div>
+      <div class="ln-card-body">
+        <div class="ln-card-meta">
+          <span>{{ item.publishedAt|slice:":10" }}</span>
+        </div>
+        <div class="ln-card-title">{{ item.title }}</div>
+        <p class="ln-card-desc">{{ item.description|default:"Click to read the full story." }}</p>
+        <div class="ln-card-footer">
+          <a href="{{ item.url }}" target="_blank" rel="noopener" class="ln-read-btn">
+            Read More <i class="fas fa-external-link-alt" style="font-size:.6rem;"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+    {% empty %}
+    <div class="ln-empty">
+      <div style="font-size:3rem;margin-bottom:1rem;">📡</div>
+      <p style="font-weight:600;margin-bottom:.5rem;">No live news available right now.</p>
+      <p style="font-size:.85rem;">Add your GNews API key in <code>news/views.py</code> to enable live headlines.</p>
+    </div>
+    {% endfor %}
+  </div>
+
+</div>
+
+<script>
+const FALLBACK = '{{ fallback_img }}';
+const API_URL  = '{% url "live_news_api" %}';
+const CAT      = '{{ active_cat }}';
+const CITY     = '{{ active_city }}';
+
+function showSkeleton(show) {
+  document.getElementById('skeletonGrid').classList.toggle('show', show);
+  document.getElementById('liveGrid').style.opacity = show ? '0' : '1';
+}
+
+function buildCard(item) {
+  const img   = item.image || FALLBACK;
+  const date  = (item.publishedAt || '').slice(0, 10);
+  const desc  = item.description || 'Click to read the full story.';
+  const src   = (item.source && item.source.name) ? item.source.name : 'News';
+  return `
+  <div class="ln-card">
+    <div class="ln-card-img">
+      <img src="${img}" alt="" loading="lazy" onerror="this.src='${FALLBACK}'">
+      <span class="ln-card-src">${src}</span>
+      <span class="ln-card-ext">Live</span>
+    </div>
+    <div class="ln-card-body">
+      <div class="ln-card-meta"><span>${date}</span></div>
+      <div class="ln-card-title">${item.title}</div>
+      <p class="ln-card-desc">${desc}</p>
+      <div class="ln-card-footer">
+        <a href="${item.url}" target="_blank" rel="noopener" class="ln-read-btn">
+          Read More <i class="fas fa-external-link-alt" style="font-size:.6rem;"></i>
+        </a>
+      </div>
+    </div>
+  </div>`;
+}
+
+function fetchLiveNews() {
+  const btn  = document.getElementById('refreshBtn');
+  const icon = document.getElementById('refreshIcon');
+  btn.classList.add('spinning');
+  showSkeleton(true);
+
+  fetch(`${API_URL}?category=${CAT}&city=${CITY}`)
+    .then(r => r.json())
+    .then(data => {
+      const grid = document.getElementById('liveGrid');
+      if (data.articles && data.articles.length) {
+        grid.innerHTML = data.articles.map(buildCard).join('');
+      } else {
+        grid.innerHTML = `<div class="ln-empty"><div style="font-size:3rem;margin-bottom:1rem;">📡</div><p>No live news available. Check your API key.</p></div>`;
+      }
+      showSkeleton(false);
+      btn.classList.remove('spinning');
+      // restart progress bar
+      const bar = document.getElementById('refreshBar');
+      bar.style.animation = 'none';
+      bar.offsetHeight;
+      bar.style.animation = '';
+    })
+    .catch(() => { showSkeleton(false); btn.classList.remove('spinning'); });
+}
+
+// Auto-refresh every 30 seconds
+setInterval(fetchLiveNews, 30000);
+</script>
+{% endblock %}

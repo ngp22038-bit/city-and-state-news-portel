@@ -1,0 +1,194 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Reporter Command Center | The Daily Portal{% endblock %}
+
+{% block city_options %}
+  {% for city in cities %}<option value="{{ city }}">{{ city }}</option>{% endfor %}
+{% endblock %}
+{% block state_options %}
+  {% for state in states %}<option value="{{ state }}">{{ state }}</option>{% endfor %}
+{% endblock %}
+
+{% block content %}
+<style>
+.od-wrap { max-width: var(--container); margin: 0 auto; padding: 2rem 2rem 4rem; }
+
+/* ── Page Header ── */
+.od-header {
+  background: linear-gradient(135deg, #0d1b2a 0%, #1b2d3e 100%);
+  border-radius: var(--radius-lg); padding: 2rem 2.5rem;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 1.5rem; margin-bottom: 2.5rem; flex-wrap: wrap;
+  box-shadow: var(--shadow-lg);
+}
+.od-header-left .od-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--red); color: #fff; font-size: .68rem;
+  font-weight: 800; text-transform: uppercase; letter-spacing: 1.2px;
+  padding: 3px 12px; border-radius: 99px; margin-bottom: .75rem;
+}
+.od-header-left h1 {
+  font-family: var(--font-serif); font-size: 2rem; font-weight: 900;
+  color: #fff; margin: 0;
+}
+.od-header-right { text-align: right; }
+.od-journalist {
+  font-size: 1rem; font-weight: 700; color: #fff; margin-bottom: .3rem;
+}
+.od-cred {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: rgba(34,197,94,.15); color: #4ade80;
+  font-size: .7rem; font-weight: 800; text-transform: uppercase;
+  letter-spacing: 1px; padding: 3px 10px; border-radius: 99px;
+  border: 1px solid rgba(74,222,128,.3);
+}
+.od-cred::before { content:''; width:6px; height:6px; background:#4ade80; border-radius:50%; animation: pulse-dot 1.5s infinite; }
+
+/* ── Layout ── */
+.od-layout { display: grid; grid-template-columns: 260px 1fr; gap: 2rem; }
+
+/* ── Sidebar Nav ── */
+.od-nav {
+  display: flex; flex-direction: column; gap: .4rem;
+}
+.od-nav-label {
+  font-size: .72rem; font-weight: 800; text-transform: uppercase;
+  letter-spacing: 1.5px; color: var(--text-muted);
+  margin-bottom: .75rem; padding-left: .25rem;
+}
+.od-nav-link {
+  display: flex; align-items: center; gap: 10px;
+  padding: .7rem 1rem; border-radius: 50px;
+  color: var(--text); font-size: .875rem; font-weight: 600;
+  text-decoration: none; margin-bottom: .4rem;
+  background: var(--bg-card); border: 1.5px solid var(--border);
+  transition: all .2s var(--ease); box-shadow: var(--shadow-xs);
+}
+.od-nav-link:hover {
+  background: #0d1b2a; color: #fff; border-color: #0d1b2a;
+  transform: translateX(4px); box-shadow: var(--shadow-sm);
+}
+/* Active — current page */
+.od-nav-link.active {
+  background: var(--red); color: #fff; border-color: var(--red);
+  box-shadow: 0 4px 12px rgba(230,57,70,.3); font-weight: 700;
+}
+.od-nav-link.active:hover { background: var(--red-dark); border-color: var(--red-dark); }
+/* Highlight — New Article CTA */
+.od-nav-link.highlight {
+  background: #0d1b2a; color: #fff; border-color: #0d1b2a; font-weight: 700;
+}
+.od-nav-link.highlight:hover {
+  background: var(--red); border-color: var(--red);
+  box-shadow: 0 4px 12px rgba(230,57,70,.3);
+}
+.od-nav-link i { width: 16px; text-align: center; font-size: .85rem; }
+
+/* ── Main Content ── */
+.od-main { display: flex; flex-direction: column; gap: 1.5rem; }
+.od-section-title {
+  font-family: var(--font-serif); font-size: 1.2rem; font-weight: 800;
+  color: var(--text); margin-bottom: 1.2rem; padding-bottom: .5rem;
+  border-bottom: 2px solid var(--red); display: inline-block;
+}
+.od-card {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); padding: 1.75rem;
+  box-shadow: var(--shadow-sm);
+}
+.od-empty {
+  text-align: center; padding: 3rem 1rem; color: var(--text-muted);
+}
+.od-empty svg { opacity: .2; margin: 0 auto 1rem; display: block; }
+.od-empty p { font-size: .92rem; margin-bottom: 1.25rem; }
+.od-draft-btn {
+  display: inline-flex; align-items: center; gap: 7px;
+  background: var(--red); color: #fff; padding: .65rem 1.5rem;
+  border-radius: 50px; font-weight: 700; font-size: .875rem;
+  text-decoration: none; transition: background .2s;
+  border: none; cursor: pointer;
+}
+.od-draft-btn:hover { background: var(--red-dark); transform: none; }
+
+@media (max-width: 900px) {
+  .od-layout { grid-template-columns: 1fr; }
+  .od-header { flex-direction: column; align-items: flex-start; }
+  .od-header-right { text-align: left; }
+}
+</style>
+
+<div class="od-wrap">
+
+  <!-- ── HEADER ── -->
+  <div class="od-header">
+    <div class="od-header-left">
+      <div class="od-badge">🔒 Internal Access</div>
+      <h1>Reporter Command Center</h1>
+    </div>
+    <div class="od-header-right">
+      <div class="od-journalist">
+        <i class="fas fa-user-pen" style="color:rgba(255,255,255,.5);margin-right:6px;"></i>
+        Journalist: {{ request.user.first_name }} {{ request.user.last_name }}
+      </div>
+      <span class="od-cred">Active Credentials</span>
+    </div>
+  </div>
+
+  <!-- ── LAYOUT ── -->
+  <div class="od-layout">
+
+    <!-- SIDEBAR NAV -->
+    <!-- SIDEBAR NAV -->
+    <aside>
+      <div class="od-nav-label">Navigation</div>
+      <div class="od-nav">
+        <a href="{% url 'owner_dashboard' %}" class="od-nav-link active">
+          <i class="fas fa-house"></i> Dashboard
+        </a>
+        <a href="{% url 'add_article' %}" class="od-nav-link highlight">
+          <i class="fas fa-plus"></i> New Article
+        </a>
+        <a href="{% url 'manage_articles' %}" class="od-nav-link">
+          <i class="fas fa-list-ul"></i> Manage Articles
+        </a>
+        <a href="#" class="od-nav-link">
+          <i class="fas fa-file-lines"></i> Draft Articles
+        </a>
+        <a href="#" class="od-nav-link">
+          <i class="fas fa-newspaper"></i> Published Stories
+        </a>
+        <a href="{% url 'analytics' %}" class="od-nav-link">
+          <i class="fas fa-chart-line"></i> Live Analytics
+        </a>
+        <a href="{% url 'admin_analytics' %}" class="od-nav-link">
+          <i class="fas fa-chart-pie"></i> Admin Analytics
+        </a>
+        <a href="{% url 'live_news' %}" class="od-nav-link">
+          <i class="fas fa-satellite-dish"></i> Live News
+        </a>
+        <a href="#" class="od-nav-link">
+          <i class="fas fa-globe"></i> Global Wire
+        </a>
+      </div>
+    </aside>
+
+    <!-- MAIN -->
+    <div class="od-main">
+      <div class="od-card">
+        <div class="od-section-title">📝 Recent Intelligence Contributions</div>
+        <div class="od-empty">
+          <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+          </svg>
+          <p>You haven't submitted any stories in the last 24 hours.</p>
+          <a href="{% url 'add_article' %}" class="od-draft-btn">
+            <i class="fas fa-pen"></i> Draft New Story
+          </a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

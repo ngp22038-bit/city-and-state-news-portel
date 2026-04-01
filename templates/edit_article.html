@@ -1,0 +1,236 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Edit Article | The Daily Portal{% endblock %}
+
+{% block city_options %}{% for city in cities %}<option value="{{ city }}">{{ city }}</option>{% endfor %}{% endblock %}
+{% block state_options %}{% for state in states %}<option value="{{ state }}">{{ state }}</option>{% endfor %}{% endblock %}
+
+{% block extra_head %}
+<link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
+<style>
+.aa-wrap { max-width: 860px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+.aa-header {
+  background: linear-gradient(135deg, #0d1b2a 0%, #1b2d3e 100%);
+  border-radius: var(--radius-lg); padding: 1.75rem 2rem;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap; box-shadow: var(--shadow-lg);
+}
+.aa-header h1 { font-family: var(--font-serif); font-size: 1.75rem; font-weight: 900; color: #fff; margin: 0; }
+.aa-header p  { color: rgba(255,255,255,.5); font-size: .82rem; margin-top: .2rem; }
+.aa-back { display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,.1); color: #fff; font-size: .82rem; font-weight: 600; padding: .5rem 1.1rem; border-radius: 50px; text-decoration: none; border: 1px solid rgba(255,255,255,.15); transition: background .2s; }
+.aa-back:hover { background: rgba(255,255,255,.2); }
+.aa-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--shadow-sm); }
+.aa-card-head { background: var(--bg); border-bottom: 1px solid var(--border); padding: 1.25rem 1.75rem; display: flex; align-items: center; gap: .75rem; }
+.aa-card-head-icon { width: 40px; height: 40px; background: rgba(230,57,70,.1); border-radius: var(--radius); display: flex; align-items: center; justify-content: center; color: var(--red); font-size: 1rem; }
+.aa-card-head h2 { font-size: 1rem; font-weight: 700; color: var(--text); margin: 0; }
+.aa-card-head p  { font-size: .78rem; color: var(--text-muted); margin: 0; }
+.aa-body { padding: 1.75rem; }
+.aa-field { margin-bottom: 1.25rem; }
+.aa-field label { display: block; font-size: .75rem; font-weight: 800; text-transform: uppercase; letter-spacing: .6px; color: var(--text-muted); margin-bottom: .4rem; }
+.aa-input-wrap { position: relative; }
+.aa-input-wrap .aa-icon { position: absolute; left: .85rem; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: .8rem; pointer-events: none; z-index: 1; }
+.aa-input-wrap input, .aa-input-wrap select {
+  width: 100%; padding: .65rem .9rem .65rem 2.3rem;
+  background: var(--bg); border: 1.5px solid var(--border);
+  border-radius: var(--radius); color: var(--text);
+  font-family: var(--font-sans); font-size: .875rem; margin: 0;
+  transition: border-color .2s, box-shadow .2s;
+}
+.aa-input-wrap input:focus, .aa-input-wrap select:focus { outline: none; border-color: var(--red); box-shadow: 0 0 0 3px rgba(230,57,70,.1); }
+/* Quill */
+.ql-toolbar.ql-snow { background: var(--bg-card); border: 1.5px solid var(--border) !important; border-bottom: 1px solid var(--border) !important; border-radius: var(--radius) var(--radius) 0 0; padding: 6px 10px; line-height: 0; }
+.ql-toolbar.ql-snow .ql-formats { display: inline-flex !important; align-items: center !important; margin-right: 8px; line-height: 0; vertical-align: middle; }
+.ql-toolbar.ql-snow button { display: inline-flex !important; align-items: center !important; justify-content: center !important; float: none !important; padding: 3px 4px !important; height: 24px !important; line-height: 0 !important; }
+.ql-toolbar.ql-snow button svg { display: block; width: 16px; height: 16px; }
+.ql-toolbar.ql-snow .ql-picker { display: inline-flex !important; align-items: center !important; float: none !important; height: 24px !important; line-height: 24px !important; vertical-align: middle; }
+.ql-toolbar.ql-snow .ql-picker-label { display: inline-flex !important; align-items: center !important; height: 24px !important; line-height: 1 !important; padding-top: 0 !important; padding-bottom: 0 !important; }
+.ql-toolbar.ql-snow .ql-picker-label svg { display: block; width: 16px; height: 16px; }
+.ql-toolbar.ql-snow .ql-align { width: 28px !important; }
+.ql-toolbar.ql-snow .ql-align .ql-picker-label { width: 28px !important; padding: 3px 4px !important; border: none !important; }
+.ql-toolbar.ql-snow .ql-align .ql-picker-label::before { display: none; }
+.ql-toolbar.ql-snow .ql-align .ql-picker-label svg { width: 16px; height: 16px; display: block; }
+.ql-container.ql-snow { background: var(--bg); border: 1.5px solid var(--border) !important; border-radius: 0 0 var(--radius) var(--radius); font-family: var(--font-sans); font-size: .9rem; color: var(--text); min-height: 220px; }
+.ql-container.ql-snow:focus-within { border-color: var(--red) !important; box-shadow: 0 0 0 3px rgba(230,57,70,.1); }
+.ql-editor { min-height: 220px; color: var(--text); }
+.ql-editor.ql-blank::before { color: var(--text-muted); font-style: normal; }
+.ql-snow .ql-stroke { stroke: var(--text-muted); }
+.ql-snow .ql-fill  { fill: var(--text-muted); }
+.ql-snow .ql-picker { color: var(--text-muted); }
+.ql-snow .ql-picker-options { background: var(--bg-card); border-color: var(--border); }
+.ql-editor img { max-width: 200px; max-height: 150px; width: auto; height: auto; border-radius: var(--radius); margin: .4rem .4rem .4rem 0; display: inline-block; vertical-align: middle; }
+.aa-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+.aa-dd-wrap { position: relative; }
+.aa-dd-wrap input { padding-right: 2rem; }
+.aa-chevron { position: absolute; right: .75rem; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: .7rem; pointer-events: none; }
+.aa-dropdown { display: none; position: absolute; top: calc(100% + 4px); left: 0; right: 0; background: var(--bg-card); border: 1.5px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow-md); max-height: 210px; overflow-y: auto; z-index: 999; padding: 4px 0; margin: 0; list-style: none; }
+.aa-dropdown li { padding: .5rem .9rem; cursor: pointer; font-size: .875rem; color: var(--text); transition: background .12s; }
+.aa-dropdown li:hover { background: var(--bg); }
+.aa-divider { border: none; border-top: 1px solid var(--border); margin: 1.5rem 0; }
+.aa-actions { display: flex; justify-content: flex-end; gap: .75rem; flex-wrap: wrap; }
+.aa-btn-cancel { display: inline-flex; align-items: center; gap: 6px; padding: .65rem 1.3rem; border: 1.5px solid var(--border); border-radius: var(--radius); background: transparent; color: var(--text); font-size: .875rem; font-weight: 600; cursor: pointer; font-family: var(--font-sans); text-decoration: none; transition: border-color .2s, color .2s; margin: 0; width: auto; }
+.aa-btn-cancel:hover { border-color: var(--red); color: var(--red); transform: none; }
+.aa-btn-publish { display: inline-flex; align-items: center; gap: 6px; padding: .65rem 1.5rem; background: var(--red); color: #fff; border: none; border-radius: var(--radius); font-size: .875rem; font-weight: 700; cursor: pointer; font-family: var(--font-sans); transition: background .2s, transform .15s; margin: 0; width: auto; }
+.aa-btn-publish:hover { background: var(--red-dark); transform: translateY(-1px); }
+.aa-msg { padding: .75rem 1rem; border-radius: var(--radius); font-size: .875rem; margin-bottom: 1.25rem; }
+.aa-msg.success { background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; }
+.aa-msg.error   { background: var(--red-soft); color: var(--red); border: 1px solid rgba(230,57,70,.25); }
+@media (max-width: 640px) { .aa-grid { grid-template-columns: 1fr; } .aa-wrap { padding: 1rem 1rem 3rem; } .aa-header { flex-direction: column; align-items: flex-start; } }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="aa-wrap">
+  <div class="aa-header">
+    <div>
+      <h1>✏️ Edit Article</h1>
+      <p>Update your story details below</p>
+    </div>
+    <a href="{% url 'manage_articles' %}" class="aa-back"><i class="fas fa-arrow-left"></i> Manage Articles</a>
+  </div>
+
+  <div class="aa-card">
+    <div class="aa-card-head">
+      <div class="aa-card-head-icon"><i class="fas fa-pen-to-square"></i></div>
+      <div><h2>Article Details</h2><p>Editing: {{ article.title|truncatechars:50 }}</p></div>
+    </div>
+    <div class="aa-body">
+      {% if messages %}
+        {% for message in messages %}
+        <div class="aa-msg {% if message.tags == 'success' %}success{% else %}error{% endif %}">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+
+      <form id="article-form" action="{% url 'edit_article' article.id %}" method="POST">
+        {% csrf_token %}
+
+        <div class="aa-field">
+          <label>Article Title</label>
+          <div class="aa-input-wrap">
+            <i class="fas fa-heading aa-icon"></i>
+            <input type="text" name="title" value="{{ article.title }}" required>
+          </div>
+        </div>
+
+        <div class="aa-field">
+          <label>Article Content</label>
+          <div id="quill-editor"></div>
+          <input type="hidden" name="content" id="content-input">
+        </div>
+
+        <div class="aa-grid">
+
+          <div class="aa-field">
+            <label>Category</label>
+            <div class="aa-input-wrap aa-dd-wrap" id="cat-wrapper">
+              <i class="fas fa-layer-group aa-icon"></i>
+              <input type="text" name="category" id="cat-input" value="{{ article.category|default:'' }}" placeholder="Select or type category" autocomplete="off" onfocus="showDD('cat')" oninput="filterDD('cat',this.value)">
+              <i class="fas fa-chevron-down aa-chevron"></i>
+              <ul class="aa-dropdown" id="cat-dropdown">
+                {% for cat in categories %}<li onclick="pickDD('cat','{{ cat }}')" class="cat-opt">{{ cat }}</li>{% endfor %}
+              </ul>
+            </div>
+          </div>
+
+          <div class="aa-field">
+            <label>Author Name</label>
+            <div class="aa-input-wrap">
+              <i class="fas fa-user-pen aa-icon"></i>
+              <input type="text" name="author_name" value="{{ article.author.get_full_name|default:article.author.email }}">
+            </div>
+          </div>
+
+          <div class="aa-field">
+            <label>City</label>
+            <div class="aa-input-wrap aa-dd-wrap" id="city-wrapper">
+              <i class="fas fa-city aa-icon"></i>
+              <input type="text" name="city" id="city-input" value="{{ article.city|default:'' }}" placeholder="Select or type city" autocomplete="off" onfocus="showDD('city')" oninput="filterDD('city',this.value)">
+              <i class="fas fa-chevron-down aa-chevron"></i>
+              <ul class="aa-dropdown" id="city-dropdown">
+                {% for city in cities %}<li onclick="pickDD('city','{{ city }}')" class="city-opt">{{ city }}</li>{% endfor %}
+              </ul>
+            </div>
+          </div>
+
+          <div class="aa-field">
+            <label>State</label>
+            <div class="aa-input-wrap aa-dd-wrap" id="state-wrapper">
+              <i class="fas fa-map-location-dot aa-icon"></i>
+              <input type="text" name="state" id="state-input" value="{{ article.state|default:'' }}" placeholder="Select or type state" autocomplete="off" onfocus="showDD('state')" oninput="filterDD('state',this.value)">
+              <i class="fas fa-chevron-down aa-chevron"></i>
+              <ul class="aa-dropdown" id="state-dropdown">
+                {% for state in states %}<li onclick="pickDD('state','{{ state }}')" class="state-opt">{{ state }}</li>{% endfor %}
+              </ul>
+            </div>
+          </div>
+
+        </div>
+
+        <hr class="aa-divider">
+        <div class="aa-actions">
+          <a href="{% url 'manage_articles' %}" class="aa-btn-cancel"><i class="fas fa-xmark"></i> Cancel</a>
+          <button type="submit" class="aa-btn-publish"><i class="fas fa-circle-check"></i> Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
+<script>
+const quill = new Quill('#quill-editor', {
+  theme: 'snow',
+  placeholder: 'Write full news content here…',
+  modules: {
+    toolbar: {
+      container: [
+        [{ header: [1, 2, 3, false] }],
+        ['bold', 'italic', 'underline', 'strike'],
+        [{ list: 'ordered' }, { list: 'bullet' }],
+        [{ align: [] }],
+        ['link', 'image', 'blockquote'],
+        ['clean']
+      ],
+      handlers: {
+        image: function() {
+          const input = document.createElement('input');
+          input.setAttribute('type', 'file');
+          input.setAttribute('accept', 'image/*');
+          input.click();
+          input.onchange = () => {
+            const file = input.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+              const range = quill.getSelection(true);
+              quill.insertEmbed(range.index, 'image', e.target.result);
+            };
+            reader.readAsDataURL(file);
+          };
+        }
+      }
+    }
+  }
+});
+
+// Pre-fill existing content
+quill.root.innerHTML = `{{ article.content|escapejs }}`;
+
+document.getElementById('article-form').addEventListener('submit', function() {
+  const html = quill.root.innerHTML;
+  document.getElementById('content-input').value = (html === '<p><br></p>') ? '' : html;
+});
+
+function showDD(key) { filterDD(key, document.getElementById(key+'-input').value); }
+function filterDD(key, val) {
+  const dd = document.getElementById(key+'-dropdown');
+  const items = dd.querySelectorAll('.'+key+'-opt');
+  let any = false;
+  items.forEach(li => { const m = li.textContent.toLowerCase().includes(val.toLowerCase()); li.style.display = m ? '' : 'none'; if (m) any = true; });
+  dd.style.display = any ? 'block' : 'none';
+}
+function pickDD(key, val) { document.getElementById(key+'-input').value = val; document.getElementById(key+'-dropdown').style.display = 'none'; }
+document.addEventListener('click', function(e) {
+  ['cat','city','state'].forEach(key => { const w = document.getElementById(key+'-wrapper'); if (w && !w.contains(e.target)) document.getElementById(key+'-dropdown').style.display = 'none'; });
+});
+</script>
+{% endblock %}

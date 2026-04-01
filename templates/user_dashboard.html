@@ -1,0 +1,710 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Reader Panel | The Daily Portal{% endblock %}
+
+{% block city_options %}
+  {% for city in cities %}<option value="{{ city }}">{{ city }}</option>{% endfor %}
+{% endblock %}
+{% block state_options %}
+  {% for state in states %}<option value="{{ state }}">{{ state }}</option>{% endfor %}
+{% endblock %}
+
+{% block content %}
+<style>
+/* ── Layout ── */
+.rp-page   { max-width: var(--container); margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+.rp-wrapper { display: grid; grid-template-columns: 1fr 300px; gap: 2rem; align-items: start; }
+.rp-main   { min-width: 0; }
+.rp-sidebar { position: sticky; top: 90px; }
+
+/* ── Header ── */
+.rp-header {
+  background: linear-gradient(135deg, #0d1b2a 0%, #1b2d3e 100%);
+  border-radius: var(--radius-lg); padding: 1.75rem 2rem;
+  margin-bottom: 2rem; box-shadow: var(--shadow-lg);
+}
+.rp-welcome { font-family: var(--font-serif); font-size: 2rem; font-weight: 900; color: #fff; margin: .25rem 0 .4rem; }
+.rp-badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 11px; border-radius: 99px; font-size: .75rem; font-weight: 700; background: rgba(255,255,255,.12); color: rgba(255,255,255,.85); margin: 3px 4px 3px 0; }
+
+/* ── Stat Cards ── */
+.rp-stats { display: grid; grid-template-columns: repeat(3,1fr); gap: 1rem; margin-bottom: 2rem; }
+.rp-stat { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.25rem 1.5rem; display: flex; align-items: center; gap: 1rem; box-shadow: var(--shadow-sm); transition: transform .2s, box-shadow .2s; }
+.rp-stat:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
+.rp-stat-icon { width: 46px; height: 46px; border-radius: var(--radius); background: rgba(230,57,70,.1); color: var(--red); display: flex; align-items: center; justify-content: center; font-size: 1.3rem; flex-shrink: 0; }
+.rp-stat-val { font-size: 1.8rem; font-weight: 800; line-height: 1; color: var(--text); }
+.rp-stat-lbl { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: var(--text-muted); margin-top: 2px; }
+
+/* ── Search Bar ── */
+.rp-search-bar { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.1rem 1.25rem; margin-bottom: 2rem; box-shadow: var(--shadow-sm); }
+.rp-search-row { display: flex; gap: .65rem; flex-wrap: wrap; }
+.rp-search-input { flex: 1; min-width: 180px; background: var(--bg); border: 1.5px solid var(--border); border-radius: var(--radius); padding: .55rem .9rem; color: var(--text); font-family: var(--font-sans); font-size: .875rem; margin: 0; }
+.rp-search-input:focus { outline: none; border-color: var(--red); box-shadow: 0 0 0 3px rgba(230,57,70,.1); }
+.rp-filter-select { background: var(--bg); border: 1.5px solid var(--border); border-radius: var(--radius); padding: .55rem .9rem; color: var(--text); font-family: var(--font-sans); font-size: .875rem; cursor: pointer; margin: 0; width: auto; }
+.rp-filter-select:focus { outline: none; border-color: var(--red); }
+.rp-search-btn { background: var(--red); color: #fff; border: none; border-radius: var(--radius); padding: .55rem 1.25rem; font-weight: 700; cursor: pointer; font-size: .875rem; margin: 0; width: auto; font-family: var(--font-sans); transition: background .2s, transform .15s; }
+.rp-search-btn:hover { background: var(--red-dark); transform: translateY(-1px); }
+.rp-search-btn.clear { background: transparent; color: var(--text-muted); border: 1.5px solid var(--border); }
+.rp-search-btn.clear:hover { border-color: var(--red); color: var(--red); background: transparent; transform: none; }
+
+/* ── Section Header ── */
+.rp-section { margin-bottom: 2.5rem; }
+.rp-section-hdr { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; padding-bottom: .6rem; border-bottom: 2px solid var(--border); }
+.rp-section-hdr h2 { font-family: var(--font-serif); font-size: 1.4rem; font-weight: 800; margin: 0; color: var(--text); }
+.rp-view-all { color: var(--red); font-weight: 700; font-size: .8rem; text-decoration: none; }
+.rp-view-all:hover { color: var(--red-dark); }
+
+/* ── Grids ── */
+.rp-grid-3 { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px,1fr)); gap: 1.25rem; }
+.rp-grid-2 { display: grid; grid-template-columns: repeat(2,1fr); gap: 1.25rem; }
+
+/* ── Card ── */
+.rp-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; display: flex; flex-direction: column; height: 100%; box-shadow: var(--shadow-sm); transition: transform .2s, box-shadow .2s; }
+.rp-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+.rp-card-img { width: 100%; height: 155px; position: relative; overflow: hidden; background: var(--bg); }
+.rp-card-img img { width: 100%; height: 100%; object-fit: cover; transition: transform .4s; }
+.rp-card:hover .rp-card-img img { transform: scale(1.06); }
+.rp-card-img-placeholder { width: 100%; height: 100%; background: linear-gradient(135deg, rgba(13,27,42,.08), rgba(230,57,70,.08)); display: flex; align-items: center; justify-content: center; font-size: 2.5rem; }
+.rp-cat-tag { position: absolute; top: 10px; left: 10px; background: var(--red); color: #fff; padding: 2px 9px; font-size: .68rem; font-weight: 800; border-radius: var(--radius-sm); text-transform: uppercase; letter-spacing: .5px; }
+.rp-card-body { padding: 1rem 1.1rem 1.1rem; flex: 1; display: flex; flex-direction: column; }
+.rp-card-meta { font-size: .72rem; color: var(--text-muted); margin-bottom: .5rem; display: flex; justify-content: space-between; }
+.rp-card-title { font-family: var(--font-serif); font-size: 1rem; font-weight: 800; line-height: 1.4; margin-bottom: .45rem; }
+.rp-card-title a { color: var(--text); text-decoration: none; }
+.rp-card-title a:hover { color: var(--red); }
+.rp-card-excerpt { font-size: .82rem; color: var(--text-muted); line-height: 1.55; flex: 1; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.rp-card-footer { margin-top: .85rem; padding-top: .7rem; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; font-size: .75rem; color: var(--text-muted); }
+.rp-icon-btn { display: inline-flex; align-items: center; gap: 4px; background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: .75rem; padding: 3px 7px; border-radius: var(--radius-sm); margin: 0; width: auto; font-family: var(--font-sans); transition: color .15s, background .15s; }
+.rp-icon-btn:hover { color: var(--red); background: rgba(230,57,70,.08); transform: none; }
+.rp-icon-btn.bookmarked { color: #d97706; }
+.rp-read-more { display: inline-flex; align-items: center; gap: 4px; color: var(--red); font-weight: 700; font-size: .75rem; text-decoration: none; padding: 3px 7px; border-radius: var(--radius-sm); transition: background .15s; }
+.rp-read-more:hover { background: rgba(230,57,70,.08); }
+
+/* ── Horizontal Card ── */
+.rp-hcard { flex-direction: row; height: 170px; }
+.rp-hcard .rp-card-img { width: 38%; height: 100%; flex-shrink: 0; }
+.rp-hcard .rp-card-body { width: 62%; }
+
+/* ── Skeleton ── */
+.rp-skeleton { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
+.sk-block { background: linear-gradient(90deg, var(--border) 25%, rgba(200,200,200,.08) 50%, var(--border) 75%); background-size: 200% 100%; animation: sk-shimmer 1.5s infinite; border-radius: var(--radius-sm); }
+@keyframes sk-shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+.sk-img { height: 155px; border-radius: 0; }
+.sk-line { height: 11px; margin: 8px 12px; }
+.sk-line.short { width: 55%; }
+
+/* ── Sidebar Widgets ── */
+.rp-widget { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.25rem 1.4rem; margin-bottom: 1.25rem; box-shadow: var(--shadow-sm); }
+.rp-widget-title { font-family: var(--font-serif); font-size: 1rem; font-weight: 800; color: var(--text); border-bottom: 2px solid var(--red); padding-bottom: .35rem; margin-bottom: 1rem; display: inline-block; }
+.rp-quick-link { display: flex; align-items: center; justify-content: space-between; text-decoration: none; color: var(--text); font-weight: 600; font-size: .875rem; border: 1.5px solid var(--border); padding: .6rem .9rem; border-radius: var(--radius); margin-bottom: .6rem; transition: border-color .15s, background .15s; }
+.rp-quick-link:hover { border-color: var(--red); background: rgba(230,57,70,.04); color: var(--red); }
+.rp-quick-link .badge-count { background: var(--red); color: #fff; font-size: .68rem; font-weight: 700; padding: 2px 8px; border-radius: 99px; }
+
+/* ── Trending List ── */
+.rp-trending-item { display: flex; gap: 10px; padding: .8rem 0; border-bottom: 1px solid var(--border); }
+.rp-trending-item:last-child { border-bottom: none; padding-bottom: 0; }
+.rp-trending-rank { font-size: 1.3rem; font-weight: 900; color: var(--border); min-width: 22px; line-height: 1; }
+.rp-trending-title { font-size: .85rem; font-weight: 700; line-height: 1.4; margin-bottom: 2px; }
+.rp-trending-title a { color: var(--text); text-decoration: none; }
+.rp-trending-title a:hover { color: var(--red); }
+
+/* ── Pro Card ── */
+.rp-pro-card { background: linear-gradient(135deg, #0d1b2a 0%, #1b2d3e 100%); color: #fff; border-radius: var(--radius-lg); padding: 1.5rem; margin-bottom: 1.25rem; box-shadow: var(--shadow-lg); }
+.rp-pro-title { font-family: var(--font-serif); font-size: 1.2rem; font-weight: 900; margin-bottom: .75rem; }
+.rp-pro-features { list-style: none; padding: 0; margin: 0 0 1rem; font-size: .83rem; }
+.rp-pro-features li { padding: 3px 0; opacity: .85; }
+.rp-pro-status { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,.08); padding: 7px 11px; border-radius: var(--radius); font-size: .83rem; margin-bottom: .9rem; }
+.rp-pro-active { color: #4ade80; font-weight: 700; }
+.rp-pro-manage { color: #fff; text-decoration: underline; font-size: .83rem; cursor: pointer; background: none; border: none; padding: 0; margin: 0; width: auto; font-weight: 600; }
+.rp-pro-manage:hover { opacity: .75; transform: none; background: none; }
+.rp-progress-bar { background: rgba(255,255,255,.15); border-radius: 99px; height: 6px; overflow: hidden; margin-top: .4rem; }
+.rp-progress-fill { background: var(--red); height: 100%; border-radius: 99px; transition: width 1s ease; }
+.rp-progress-label { display: flex; justify-content: space-between; font-size: .72rem; opacity: .7; margin-top: 4px; }
+
+/* ── Mini Items ── */
+.rp-mini-item { display: flex; gap: 9px; padding: .65rem 0; border-bottom: 1px solid var(--border); align-items: flex-start; }
+.rp-mini-item:last-child { border-bottom: none; }
+.rp-mini-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--red); margin-top: 6px; flex-shrink: 0; }
+.rp-mini-title { font-size: .83rem; font-weight: 700; line-height: 1.4; color: var(--text); text-decoration: none; }
+.rp-mini-title:hover { color: var(--red); }
+.rp-mini-meta { font-size: .72rem; color: var(--text-muted); margin-top: 2px; }
+
+/* ── Search Results ── */
+#search-results-section { display: none; }
+#search-results-section.active { display: block; }
+.rp-no-results { text-align: center; padding: 3rem; color: var(--text-muted); font-size: .95rem; }
+
+/* ── Dark Toggle ── */
+.rp-dark-toggle { display: flex; align-items: center; gap: 10px; background: var(--bg-card); border: 1.5px solid var(--border); border-radius: var(--radius); padding: .65rem 1rem; cursor: pointer; font-size: .875rem; font-weight: 600; color: var(--text); width: 100%; justify-content: space-between; margin-bottom: .6rem; font-family: var(--font-sans); transition: border-color .15s; }
+.rp-dark-toggle:hover { border-color: var(--red); transform: none; background: var(--bg-card); }
+.rp-toggle-switch { width: 38px; height: 20px; background: var(--border); border-radius: 99px; position: relative; transition: background .3s; flex-shrink: 0; }
+.rp-toggle-switch::after { content: ''; position: absolute; width: 14px; height: 14px; background: #fff; border-radius: 50%; top: 3px; left: 3px; transition: transform .3s; }
+[data-theme="dark"] .rp-toggle-switch { background: var(--red); }
+[data-theme="dark"] .rp-toggle-switch::after { transform: translateX(18px); }
+
+/* ── Preferences Modal ── */
+.rp-modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 9000; align-items: center; justify-content: center; }
+.rp-modal-overlay.open { display: flex; }
+.rp-modal { background: var(--bg-card); border-radius: var(--radius-lg); padding: 2rem; width: 90%; max-width: 420px; border: 1px solid var(--border); box-shadow: var(--shadow-xl); }
+.rp-modal h3 { font-family: var(--font-serif); font-size: 1.3rem; font-weight: 800; margin-bottom: 1.25rem; color: var(--text); }
+.rp-modal label { display: block; font-size: .82rem; font-weight: 700; margin-bottom: 4px; color: var(--text-muted); }
+.rp-modal input { margin-bottom: 1rem; }
+.rp-modal-actions { display: flex; gap: .75rem; margin-top: 1rem; }
+.rp-btn-primary { background: var(--red); color: #fff; border: none; border-radius: var(--radius); padding: .65rem 1.4rem; font-weight: 700; cursor: pointer; font-size: .875rem; margin: 0; width: auto; font-family: var(--font-sans); transition: background .2s; }
+.rp-btn-primary:hover { background: var(--red-dark); transform: none; }
+.rp-btn-secondary { background: transparent; color: var(--text); border: 1.5px solid var(--border); border-radius: var(--radius); padding: .65rem 1.4rem; font-weight: 600; cursor: pointer; font-size: .875rem; margin: 0; width: auto; font-family: var(--font-sans); transition: border-color .2s; }
+.rp-btn-secondary:hover { border-color: var(--red); color: var(--red); transform: none; background: transparent; }
+
+/* ── Continue Reading ── */
+.rp-continue-item { display: flex; gap: .9rem; padding: .8rem 0; border-bottom: 1px solid var(--border); }
+.rp-continue-item:last-child { border-bottom: none; }
+.rp-continue-thumb { width: 66px; height: 52px; border-radius: var(--radius); background: var(--bg); flex-shrink: 0; overflow: hidden; }
+.rp-continue-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.rp-continue-title { font-size: .875rem; font-weight: 700; line-height: 1.4; color: var(--text); text-decoration: none; }
+.rp-continue-title:hover { color: var(--red); }
+.rp-continue-meta { font-size: .72rem; color: var(--text-muted); margin-top: 3px; }
+
+/* ── Responsive ── */
+@media (max-width: 1024px) { .rp-wrapper { grid-template-columns: 1fr; } .rp-sidebar { position: static; } }
+@media (max-width: 768px) {
+  .rp-stats { grid-template-columns: 1fr 1fr; }
+  .rp-grid-2 { grid-template-columns: 1fr; }
+  .rp-hcard { flex-direction: column; height: auto; }
+  .rp-hcard .rp-card-img { width: 100%; height: 140px; }
+  .rp-welcome { font-size: 1.6rem; }
+  .rp-search-row { flex-direction: column; }
+  .rp-filter-select, .rp-search-btn { width: 100%; }
+}
+@media (max-width: 480px) { .rp-stats { grid-template-columns: 1fr; } }
+</style>
+
+<!-- ===== PREFERENCES MODAL ===== -->
+<div class="rp-modal-overlay" id="prefModal">
+  <div class="rp-modal">
+    <h3>📍 Change Preferences</h3>
+    <form method="post" action="#">
+      {% csrf_token %}
+      <label>Preferred City</label>
+      <input type="text" name="preferred_city" value="{{ request.user.preferred_city|default:'' }}" placeholder="e.g. Ahmedabad">
+      <label>Preferred State</label>
+      <input type="text" name="preferred_state" value="{{ request.user.preferred_state|default:'' }}" placeholder="e.g. Gujarat">
+      <div class="rp-modal-actions">
+        <button type="submit" class="rp-btn-primary">Save Preferences</button>
+        <button type="button" class="rp-btn-secondary" onclick="document.getElementById('prefModal').classList.remove('open')">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ===== DASHBOARD HEADER ===== -->
+<div class="rp-page">
+<div class="rp-header">
+  <div style="display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:16px;">
+    <div>
+      <h1 class="rp-welcome">Welcome Back, {{ request.user.first_name|default:request.user.email }} 👋</h1>
+      <p style="color:rgba(255,255,255,.55); margin-top:6px; font-size:.9rem;">Your personalized news feed — city, state &amp; beyond.</p>
+      <div style="margin-top:10px;">
+        {% if request.user.city %}<span class="rp-badge"><i class="fas fa-location-dot"></i> {{ request.user.city }}</span>{% endif %}
+        {% if request.user.preferred_city %}<span class="rp-badge"><i class="fas fa-crosshairs"></i> {{ request.user.preferred_city }}</span>{% endif %}
+        {% if request.user.preferred_state %}<span class="rp-badge"><i class="fas fa-map"></i> {{ request.user.preferred_state }}</span>{% endif %}
+        <button onclick="document.getElementById('prefModal').classList.add('open')" style="background:none;border:none;color:rgba(255,255,255,.6);font-size:.8rem;cursor:pointer;text-decoration:underline;padding:0;margin:0;width:auto;">Edit Preferences</button>
+      </div>
+    </div>
+    <div style="display:flex;gap:.6rem;flex-wrap:wrap;">
+      <div style="background:rgba(255,255,255,.1);border-radius:var(--radius-lg);padding:.75rem 1.25rem;text-align:center;">
+        <div style="font-size:1.4rem;font-weight:900;color:#fff;">{{ articles_read_count }}</div>
+        <div style="font-size:.68rem;color:rgba(255,255,255,.55);text-transform:uppercase;letter-spacing:.5px;">Read</div>
+      </div>
+      <div style="background:rgba(255,255,255,.1);border-radius:var(--radius-lg);padding:.75rem 1.25rem;text-align:center;">
+        <div style="font-size:1.4rem;font-weight:900;color:#fff;">{{ saved_count }}</div>
+        <div style="font-size:.68rem;color:rgba(255,255,255,.55);text-transform:uppercase;letter-spacing:.5px;">Saved</div>
+      </div>
+      <div style="background:rgba(255,255,255,.1);border-radius:var(--radius-lg);padding:.75rem 1.25rem;text-align:center;">
+        <div style="font-size:1.4rem;font-weight:900;color:#fff;">{{ comments_count }}</div>
+        <div style="font-size:.68rem;color:rgba(255,255,255,.55);text-transform:uppercase;letter-spacing:.5px;">Comments</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SEARCH & FILTER BAR ===== -->
+<div class="rp-search-bar">
+  <div class="rp-search-row">
+    <input type="text" id="searchInput" class="rp-search-input" placeholder="🔍  Search articles, topics, cities...">
+    <select id="filterCategory" class="rp-filter-select">
+      <option value="">All Categories</option>
+      {% for cat in categories %}
+        <option value="{{ cat }}">{{ cat }}</option>
+      {% endfor %}
+      <option value="Sports">Sports</option>
+      <option value="Tech">Tech</option>
+      <option value="Politics">Politics</option>
+      <option value="Business">Business</option>
+    </select>
+    <select id="filterDate" class="rp-filter-select">
+      <option value="">Any Time</option>
+      <option value="today">Today</option>
+      <option value="week">This Week</option>
+      <option value="month">This Month</option>
+    </select>
+    <input type="text" id="filterCity" class="rp-search-input" style="max-width:160px;" placeholder="City / State">
+    <button class="rp-search-btn" onclick="doSearch()"><i class="fas fa-search"></i> Search</button>
+    <button class="rp-search-btn clear" onclick="clearSearch()">Clear</button>
+  </div>
+</div>
+
+<!-- ===== SEARCH RESULTS (hidden by default) ===== -->
+<div id="search-results-section" class="rp-section">
+  <div class="rp-section-hdr">
+    <h2>🔍 Search Results</h2>
+    <span id="search-count" style="font-size:0.85rem;color:var(--text-muted);"></span>
+  </div>
+  <div id="search-results-grid" class="rp-grid-3">
+    <!-- Populated by JS -->
+  </div>
+</div>
+
+<!-- ===== MAIN + SIDEBAR WRAPPER ===== -->
+<div class="rp-wrapper">
+<div class="rp-main">
+
+  <!-- ===== LATEST HEADLINES ===== -->
+  <div class="rp-section">
+    <div class="rp-section-hdr">
+      <h2>📰 Latest Headlines</h2>
+      <a href="#" class="rp-view-all">Browse all &rarr;</a>
+    </div>
+    <div class="rp-grid-3" id="latest-grid">
+      {% if latest_news %}
+        {% for article in latest_news %}
+        <div class="rp-card">
+          <div class="rp-card-img">
+            {% with article.media.first as media %}
+              {% if media and media.media_upload %}
+                <img src="{{ media.media_upload.url }}" alt="{{ article.title }}" loading="lazy">
+              {% else %}
+                <div class="rp-card-img-placeholder">📰</div>
+              {% endif %}
+            {% endwith %}
+            <span class="rp-cat-tag">{{ article.category|default:"News" }}</span>
+          </div>
+          <div class="rp-card-body">
+            <div class="rp-card-meta">
+              <span>{{ article.city|default:"" }}{% if article.city and article.state %}, {% endif %}{{ article.state|default:"" }}</span>
+              <span>{{ article.created_at|timesince }} ago</span>
+            </div>
+            <h3 class="rp-card-title"><a href="#">{{ article.title }}</a></h3>
+            <p class="rp-card-excerpt">{{ article.content|truncatechars:110 }}</p>
+            <div class="rp-card-footer">
+              <span style="display:flex;gap:6px;align-items:center;">
+                <span style="font-size:0.78rem;">👁 {{ article.views_count }}</span>
+                <a href="{% url 'bookmark_article' article.id %}" class="rp-icon-btn {% if article.id in bookmarked_ids %}bookmarked{% endif %}" title="{% if article.id in bookmarked_ids %}Remove Bookmark{% else %}Save Article{% endif %}">
+                  {% if article.id in bookmarked_ids %}⭐{% else %}☆{% endif %} Save
+                </a>
+              </span>
+              <a href="#" class="rp-read-more">🔖 Read More</a>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      {% else %}
+        <!-- Skeleton loading placeholders -->
+        {% for i in "123456" %}
+        <div class="rp-skeleton">
+          <div class="sk-block sk-img"></div>
+          <div class="sk-block sk-line" style="margin-top:12px;"></div>
+          <div class="sk-block sk-line short"></div>
+          <div class="sk-block sk-line" style="margin-bottom:12px;"></div>
+        </div>
+        {% endfor %}
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- ===== CITY NEWS ===== -->
+  <div class="rp-section">
+    <div class="rp-section-hdr">
+      <h2>📍 News for {{ request.user.preferred_city|default:request.user.city|default:"Your City" }}</h2>
+      <a href="#" class="rp-view-all">View all local &rarr;</a>
+    </div>
+    <div class="rp-grid-2">
+      {% for article in local_news %}
+      <div class="rp-card rp-hcard">
+        <div class="rp-card-img">
+          {% with article.media.first as media %}
+            {% if media and media.media_upload %}<img src="{{ media.media_upload.url }}" alt="{{ article.title }}" loading="lazy">
+            {% else %}<div class="rp-card-img-placeholder">🏙️</div>{% endif %}
+          {% endwith %}
+          <span class="rp-cat-tag">{{ article.category|default:"Local" }}</span>
+        </div>
+        <div class="rp-card-body">
+          <div class="rp-card-meta">
+            <span>{{ article.city }}</span>
+            <span>{{ article.created_at|date:"M d" }}</span>
+          </div>
+          <h3 class="rp-card-title"><a href="#">{{ article.title }}</a></h3>
+          <p class="rp-card-excerpt">{{ article.content|truncatechars:90 }}</p>
+          <div class="rp-card-footer">
+            <span>👁 {{ article.views_count }}</span>
+            <a href="{% url 'bookmark_article' article.id %}" class="rp-icon-btn {% if article.id in bookmarked_ids %}bookmarked{% endif %}">{% if article.id in bookmarked_ids %}⭐{% else %}☆{% endif %} Save</a>
+            <a href="{% url 'report_fake_news' article.id %}" class="rp-icon-btn" title="Report">🚩</a>
+          </div>
+        </div>
+      </div>
+      {% empty %}
+      <div style="grid-column:1/-1;text-align:center;padding:2.5rem;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--rp-radius);">
+        <p style="color:var(--text-muted);margin-bottom:1rem;">No local news found. Set your city preference to see local stories.</p>
+        <button onclick="document.getElementById('prefModal').classList.add('open')" class="rp-btn-primary">Set Location</button>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- ===== STATE NEWS ===== -->
+  {% if state_news %}
+  <div class="rp-section">
+    <div class="rp-section-hdr">
+      <h2>🌍 {{ request.user.preferred_state|default:request.user.state|default:"State" }} News</h2>
+      <a href="#" class="rp-view-all">View all state &rarr;</a>
+    </div>
+    <div class="rp-grid-3">
+      {% for article in state_news %}
+      <div class="rp-card">
+        <div class="rp-card-img">
+          {% with article.media.first as media %}
+            {% if media and media.media_upload %}<img src="{{ media.media_upload.url }}" alt="{{ article.title }}" loading="lazy">
+            {% else %}<div class="rp-card-img-placeholder">🌍</div>{% endif %}
+          {% endwith %}
+          <span class="rp-cat-tag">{{ article.category|default:"State" }}</span>
+        </div>
+        <div class="rp-card-body">
+          <div class="rp-card-meta">
+            <span>{{ article.state }}</span>
+            <span>{{ article.created_at|timesince }} ago</span>
+          </div>
+          <h3 class="rp-card-title"><a href="#">{{ article.title }}</a></h3>
+          <p class="rp-card-excerpt">{{ article.content|truncatechars:100 }}</p>
+          <div class="rp-card-footer">
+            <span>👁 {{ article.views_count }}</span>
+            <a href="{% url 'bookmark_article' article.id %}" class="rp-icon-btn {% if article.id in bookmarked_ids %}bookmarked{% endif %}">{% if article.id in bookmarked_ids %}⭐{% else %}☆{% endif %} Save</a>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- ===== TRENDING NEAR YOU ===== -->
+  <div class="rp-section">
+    <div class="rp-section-hdr">
+      <h2>🔥 Trending Near You</h2>
+    </div>
+    <div class="rp-grid-3">
+      {% for article in trending_news|slice:":6" %}
+      <div class="rp-card">
+        <div class="rp-card-img">
+          {% with article.media.first as media %}
+            {% if media and media.media_upload %}<img src="{{ media.media_upload.url }}" alt="{{ article.title }}" loading="lazy">
+            {% else %}<div class="rp-card-img-placeholder">🔥</div>{% endif %}
+          {% endwith %}
+          <span class="rp-cat-tag">{{ article.category|default:"Trending" }}</span>
+        </div>
+        <div class="rp-card-body">
+          <div class="rp-card-meta">
+            <span>{{ article.city|default:"Global" }}</span>
+            <span>{{ article.created_at|timesince }} ago</span>
+          </div>
+          <h3 class="rp-card-title"><a href="#">{{ article.title }}</a></h3>
+          <p class="rp-card-excerpt">{{ article.content|truncatechars:100 }}</p>
+          <div class="rp-card-footer">
+            <span>👁 {{ article.views_count }}</span>
+            <a href="{% url 'bookmark_article' article.id %}" class="rp-icon-btn {% if article.id in bookmarked_ids %}bookmarked{% endif %}">{% if article.id in bookmarked_ids %}⭐{% else %}☆{% endif %} Save</a>
+            <a href="{% url 'report_fake_news' article.id %}" class="rp-icon-btn">🚩</a>
+          </div>
+        </div>
+      </div>
+      {% empty %}
+      <p style="color:var(--text-muted);">No trending articles yet.</p>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- ===== RECOMMENDED FOR YOU ===== -->
+  <div class="rp-section">
+    <div class="rp-section-hdr">
+      <h2>✨ Recommended For You</h2>
+    </div>
+    <div class="rp-grid-3">
+      {% for article in recommended_news %}
+      <div class="rp-card">
+        <div class="rp-card-img">
+          {% with article.media.first as media %}
+            {% if media and media.media_upload %}<img src="{{ media.media_upload.url }}" alt="{{ article.title }}" loading="lazy">
+            {% else %}<div class="rp-card-img-placeholder">✨</div>{% endif %}
+          {% endwith %}
+          <span class="rp-cat-tag">{{ article.category|default:"For You" }}</span>
+        </div>
+        <div class="rp-card-body">
+          <div class="rp-card-meta">
+            <span>{{ article.category|default:"Analysis" }}</span>
+            <span>{{ article.created_at|date:"M d" }}</span>
+          </div>
+          <h3 class="rp-card-title"><a href="#">{{ article.title }}</a></h3>
+          <p class="rp-card-excerpt">{{ article.content|truncatechars:100 }}</p>
+          <div class="rp-card-footer">
+            <span>👁 {{ article.views_count }}</span>
+            <a href="{% url 'bookmark_article' article.id %}" class="rp-icon-btn {% if article.id in bookmarked_ids %}bookmarked{% endif %}">{% if article.id in bookmarked_ids %}⭐ Saved{% else %}☆ Save{% endif %}</a>
+          </div>
+        </div>
+      </div>
+      {% empty %}
+      <p style="color:var(--text-muted);">Read more articles to unlock personalized recommendations.</p>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- ===== CONTINUE READING ===== -->
+  {% if reading_history %}
+  <div class="rp-section">
+    <div class="rp-section-hdr">
+      <h2>🕒 Continue Reading</h2>
+    </div>
+    <div class="rp-widget" style="padding:0.5rem 1.4rem;">
+      {% for item in reading_history %}
+      <div class="rp-continue-item">
+        <div class="rp-continue-thumb">
+          {% with item.article.media.first as media %}
+            {% if media and media.media_upload %}<img src="{{ media.media_upload.url }}" alt="">{% endif %}
+          {% endwith %}
+        </div>
+        <div>
+          <a href="#" class="rp-continue-title">{{ item.article.title }}</a>
+          <div class="rp-continue-meta">{{ item.article.category|default:"News" }} &bull; {{ item.read_at|timesince }} ago</div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+</div><!-- end rp-main -->
+
+<!-- ===== RIGHT SIDEBAR ===== -->
+<aside class="rp-sidebar">
+
+  <!-- Dark Mode Toggle -->
+  <div class="rp-widget" style="padding:1rem 1.2rem;">
+    <button class="rp-dark-toggle" id="darkModeToggle">
+      <span>🌙 Dark Mode</span>
+      <div class="rp-toggle-switch" id="toggleSwitch"></div>
+    </button>
+  </div>
+
+  <!-- Quick Links -->
+  <div class="rp-widget">
+    <div class="rp-widget-title">Quick Links</div>
+    <a href="#" class="rp-quick-link">
+      <span>⭐ Saved Articles</span>
+      <span class="badge-count">{{ saved_count }}</span>
+    </a>
+    <a href="#" class="rp-quick-link">
+      <span>💬 My Comments</span>
+      <span class="badge-count">{{ comments_count }}</span>
+    </a>
+    <a href="#" class="rp-quick-link">
+      <span>🕒 Reading History</span>
+      <span class="badge-count">{{ articles_read_count }}</span>
+    </a>
+    <a href="#" class="rp-quick-link">
+      <span>🔔 Notifications</span>
+      <span class="badge-count" style="background:#f59e0b;">3</span>
+    </a>
+    <a href="#" class="rp-quick-link">
+      <span>⚙️ Account Settings</span>
+      <span style="color:var(--text-muted);">&rarr;</span>
+    </a>
+    <button onclick="document.getElementById('prefModal').classList.add('open')" class="rp-quick-link" style="border:1px solid var(--border);background:none;cursor:pointer;text-align:left;width:100%;">
+      <span>📍 Change Preferences</span>
+      <span style="color:var(--text-muted);">&rarr;</span>
+    </button>
+  </div>
+
+  <!-- Pro Intelligence Card -->
+  <div class="rp-pro-card">
+    <div class="rp-pro-title">Pro Intelligence 🚀</div>
+    <ul class="rp-pro-features">
+      <li>✔ Ad-free reading</li>
+      <li>✔ Premium municipal reports</li>
+      <li>✔ Early access to exclusives</li>
+      <li>✔ Unlimited bookmarks</li>
+    </ul>
+    <div class="rp-pro-status">
+      <span>Status: <span class="rp-pro-active">Active</span></span>
+      <button class="rp-pro-manage">Manage</button>
+    </div>
+    <div style="font-size:0.78rem;opacity:0.8;margin-bottom:4px;">Subscription Usage</div>
+    <div class="rp-progress-bar"><div class="rp-progress-fill" id="proProgress"></div></div>
+    <div class="rp-progress-label"><span>68% used</span><span>Renews Apr 20</span></div>
+  </div>
+
+  <!-- Trending Widget -->
+  <div class="rp-widget">
+    <div class="rp-widget-title">🔥 Trending Now</div>
+    {% for article in trending_news|slice:":5" %}
+    <div class="rp-trending-item">
+      <span class="rp-trending-rank">{{ forloop.counter }}</span>
+      <div>
+        <div class="rp-trending-title"><a href="#">{{ article.title|truncatechars:60 }}</a></div>
+        <span style="font-size:0.75rem;color:var(--text-muted);">👁 {{ article.views_count }} &bull; {{ article.city|default:"Global" }}</span>
+      </div>
+    </div>
+    {% empty %}
+    <p style="color:var(--text-muted);font-size:0.85rem;">Trending data unavailable.</p>
+    {% endfor %}
+  </div>
+
+  <!-- Saved Articles Widget -->
+  {% if saved_articles %}
+  <div class="rp-widget">
+    <div class="rp-widget-title">⭐ Saved Articles</div>
+    {% for bookmark in saved_articles %}
+    <div class="rp-mini-item">
+      <div class="rp-mini-dot"></div>
+      <div>
+        <a href="#" class="rp-mini-title">{{ bookmark.article.title|truncatechars:55 }}</a>
+        <div class="rp-mini-meta">{{ bookmark.article.category|default:"News" }} &bull; {{ bookmark.created_at|date:"M d" }}</div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- Reading History Widget -->
+  {% if reading_history %}
+  <div class="rp-widget">
+    <div class="rp-widget-title">🕒 Reading History</div>
+    {% for item in reading_history %}
+    <div class="rp-mini-item">
+      <div class="rp-mini-dot" style="background:var(--rp-accent2);"></div>
+      <div>
+        <a href="#" class="rp-mini-title">{{ item.article.title|truncatechars:55 }}</a>
+        <div class="rp-mini-meta">{{ item.read_at|timesince }} ago</div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+</aside>
+</div><!-- end rp-wrapper -->
+</div><!-- end rp-page -->
+
+<script>
+// ===== DARK MODE TOGGLE =====
+const darkBtn = document.getElementById('darkModeToggle');
+const htmlEl = document.documentElement;
+function syncDarkToggle() {
+  const isDark = htmlEl.getAttribute('data-theme') === 'dark';
+  darkBtn.querySelector('span').textContent = isDark ? '☀️ Light Mode' : '🌙 Dark Mode';
+}
+syncDarkToggle();
+darkBtn.addEventListener('click', () => {
+  const cur = htmlEl.getAttribute('data-theme');
+  const next = cur === 'dark' ? 'light' : 'dark';
+  htmlEl.setAttribute('data-theme', next);
+  localStorage.setItem('theme', next);
+  syncDarkToggle();
+});
+
+// ===== SEARCH & FILTER =====
+const searchUrl = "{% url 'reader_search' %}";
+let searchTimeout = null;
+
+function doSearch() {
+  const q = document.getElementById('searchInput').value.trim();
+  const category = document.getElementById('filterCategory').value;
+  const date = document.getElementById('filterDate').value;
+  const city = document.getElementById('filterCity').value.trim();
+
+  if (!q && !category && !date && !city) { clearSearch(); return; }
+
+  const params = new URLSearchParams({ q, category, date, city });
+  const grid = document.getElementById('search-results-grid');
+  const section = document.getElementById('search-results-section');
+
+  // Show skeletons
+  grid.innerHTML = Array(6).fill(`
+    <div class="rp-skeleton">
+      <div class="sk-block sk-img"></div>
+      <div class="sk-block sk-line" style="margin-top:12px;"></div>
+      <div class="sk-block sk-line short"></div>
+      <div class="sk-block sk-line" style="margin-bottom:12px;"></div>
+    </div>`).join('');
+  section.classList.add('active');
+  section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  fetch(`${searchUrl}?${params}`)
+    .then(r => r.json())
+    .then(data => {
+      document.getElementById('search-count').textContent = `${data.articles.length} result(s)`;
+      if (!data.articles.length) {
+        grid.innerHTML = '<div class="rp-no-results">😕 No articles found. Try different keywords.</div>';
+        return;
+      }
+      grid.innerHTML = data.articles.map(a => `
+        <div class="rp-card">
+          <div class="rp-card-img">
+            <div class="rp-card-img-placeholder">📰</div>
+            <span class="rp-cat-tag">${a.category}</span>
+          </div>
+          <div class="rp-card-body">
+            <div class="rp-card-meta">
+              <span>${a.city}${a.city && a.state ? ', ' : ''}${a.state}</span>
+              <span>${a.created_at}</span>
+            </div>
+            <h3 class="rp-card-title"><a href="#">${a.title}</a></h3>
+            <p class="rp-card-excerpt">${a.excerpt}</p>
+            <div class="rp-card-footer">
+              <span>👁 ${a.views_count}</span>
+              <a href="/news/bookmark/${a.id}/" class="rp-icon-btn">☆ Save</a>
+              <a href="#" class="rp-read-more">🔖 Read More</a>
+            </div>
+          </div>
+        </div>`).join('');
+    })
+    .catch(() => {
+      grid.innerHTML = '<div class="rp-no-results">⚠️ Search failed. Please try again.</div>';
+    });
+}
+
+function clearSearch() {
+  document.getElementById('searchInput').value = '';
+  document.getElementById('filterCategory').value = '';
+  document.getElementById('filterDate').value = '';
+  document.getElementById('filterCity').value = '';
+  document.getElementById('search-results-section').classList.remove('active');
+}
+
+// Live search on input (debounced)
+document.getElementById('searchInput').addEventListener('input', () => {
+  clearTimeout(searchTimeout);
+  searchTimeout = setTimeout(doSearch, 450);
+});
+document.getElementById('filterCategory').addEventListener('change', doSearch);
+document.getElementById('filterDate').addEventListener('change', doSearch);
+
+// ===== BOOKMARK ANIMATION =====
+document.querySelectorAll('.rp-icon-btn').forEach(btn => {
+  btn.addEventListener('click', function(e) {
+    if (this.href && this.href.includes('/bookmark/')) return; // let Django handle it
+    this.style.transform = 'scale(1.4)';
+    setTimeout(() => this.style.transform = '', 300);
+  });
+});
+
+// ===== PRO PROGRESS BAR ANIMATION =====
+window.addEventListener('load', () => {
+  const bar = document.getElementById('proProgress');
+  if (bar) { bar.style.width = '0'; setTimeout(() => bar.style.width = '68%', 300); }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Premium Subscription | City & State News Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background-color: #f8fafc;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .payment-radio:checked + div {
+            border-color: #4f46e5;
+            background-color: #e0e7ff;
+        }
+        
+        .method-radio:checked + div {
+            border-color: #4f46e5;
+            background-color: #f8fafc;
+        }
+        
+        .method-radio:checked + div .method-icon {
+            color: #4f46e5;
+        }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+
+<body class="text-slate-800 antialiased min-h-screen flex flex-col">
+
+    <!-- 1️⃣ Header -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <!-- Logo -->
+            <a href="{% url 'user_dashboard' %}" class="flex items-center gap-2 group">
+                <div class="bg-indigo-600 text-white w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xl group-hover:bg-indigo-700 transition-colors shadow-sm">
+                    C
+                </div>
+                <span class="font-extrabold text-xl tracking-tight text-slate-900 group-hover:text-indigo-600 transition-colors">City & State <span class="text-slate-400 font-normal">News</span></span>
+            </a>
+
+            <!-- Navigation -->
+            <nav class="hidden md:flex gap-8 text-sm font-medium">
+                <a href="#" class="text-slate-500 hover:text-indigo-600 transition-colors">Home</a>
+                <a href="#" class="text-slate-500 hover:text-indigo-600 transition-colors">News</a>
+                <a href="#" class="text-indigo-600 border-b-2 border-indigo-600 pb-[19px]">Premium</a>
+                <a href="#" class="text-slate-500 hover:text-indigo-600 transition-colors">Profile</a>
+            </nav>
+
+            <button class="md:hidden text-slate-500">
+                <i class="fas fa-bars text-xl"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Checkout Container -->
+    <main class="flex-grow py-10 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-5xl mx-auto">
+            
+            <!-- Page Title -->
+            <div class="mb-8 text-center sm:text-left">
+                <h1 class="text-3xl font-bold text-slate-900">Upgrade to Premium</h1>
+                <p class="text-slate-500 mt-2">Get unlimited access to exclusive city & state news reporting.</p>
+            </div>
+
+            <div class="flex flex-col lg:flex-row gap-8">
+                
+                <!-- Left Column: Subscription Plans & Methods -->
+                <div class="lg:w-7/12 space-y-8">
+                    
+                    <!-- 2️⃣ Subscription Plans -->
+                    <section class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 relative overflow-hidden">
+                        <div class="absolute top-0 left-0 w-1 h-full bg-indigo-500"></div>
+                        <h2 class="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
+                            <i class="fas fa-certificate text-indigo-500"></i> Select a Plan
+                        </h2>
+                        
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <!-- Basic Plan -->
+                            <label class="cursor-pointer group relative">
+                                <input type="radio" name="plan" value="99" class="payment-radio sr-only" onchange="updateTotal(99, 'Basic Plan')">
+                                <div class="border-2 border-slate-200 rounded-xl p-5 hover:border-indigo-300 transition-all">
+                                    <div class="flex justify-between items-start mb-2">
+                                        <h3 class="font-bold text-slate-800">Basic Plan</h3>
+                                        <!-- Custom Check Radio Inner -->
+                                        <span class="w-5 h-5 rounded-full border-2 border-slate-300 flex items-center justify-center group-hover:border-indigo-400 bg-white">
+                                            <span class="w-2.5 h-2.5 rounded-full bg-indigo-600 opacity-0 transition-opacity check-indicator"></span>
+                                        </span>
+                                    </div>
+                                    <div class="text-2xl font-extrabold text-indigo-600 mb-3">₹99 <span class="text-xs text-slate-400 font-normal">/ month</span></div>
+                                    <ul class="text-xs text-slate-600 space-y-1.5 font-medium">
+                                        <li class="flex items-center gap-1.5"><i class="fas fa-check text-green-500"></i> Ad-free reading</li>
+                                        <li class="flex items-center gap-1.5"><i class="fas fa-check text-green-500"></i> Local e-paper access</li>
+                                        <li class="flex items-center gap-1.5"><i class="fas fa-times text-slate-300"></i> Premium editorials</li>
+                                    </ul>
+                                </div>
+                            </label>
+
+                            <!-- Premium Plan (Default Selected) -->
+                            <label class="cursor-pointer group relative">
+                                <input type="radio" name="plan" value="199" class="payment-radio sr-only" checked onchange="updateTotal(199, 'Premium Plan')">
+                                <div class="border-2 border-indigo-500 bg-indigo-50 rounded-xl p-5 shadow-[0_0_15px_rgba(79,70,229,0.15)] relative transform transition-all hover:-translate-y-1">
+                                    <div class="absolute -top-3 right-4 bg-gradient-to-r from-amber-400 to-amber-500 text-white text-[10px] font-bold px-2 py-1 rounded-full shadow-sm">
+                                        MOST POPULAR
+                                    </div>
+                                    <div class="flex justify-between items-start mb-2">
+                                        <h3 class="font-bold text-slate-800">Premium Plan</h3>
+                                        <span class="w-5 h-5 rounded-full border-2 border-indigo-500 flex items-center justify-center bg-white">
+                                            <span class="w-2.5 h-2.5 rounded-full bg-indigo-600 opacity-100 check-indicator"></span>
+                                        </span>
+                                    </div>
+                                    <div class="text-2xl font-extrabold text-indigo-600 mb-3">₹199 <span class="text-xs text-slate-400 font-normal">/ month</span></div>
+                                    <ul class="text-xs text-slate-600 space-y-1.5 font-medium">
+                                        <li class="flex items-center gap-1.5"><i class="fas fa-check text-green-500"></i> Ad-free reading</li>
+                                        <li class="flex items-center gap-1.5"><i class="fas fa-check text-green-500"></i> All e-papers & archives</li>
+                                        <li class="flex items-center gap-1.5"><i class="fas fa-check text-green-500"></i> Exclusive Editorials</li>
+                                    </ul>
+                                </div>
+                            </label>
+                        </div>
+                    </section>
+
+                    <!-- 3️⃣ Payment Method Selection -->
+                    <section class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+                        <h2 class="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
+                            <i class="fas fa-wallet text-slate-400"></i> Payment Options
+                        </h2>
+
+                        <div class="space-y-3">
+                            <!-- UPI -->
+                            <label class="cursor-pointer block relative">
+                                <input type="radio" name="method" value="upi" class="method-radio sr-only" onchange="showForm('upi')" checked>
+                                <div class="border border-slate-200 rounded-lg p-4 flex items-center justify-between hover:bg-slate-50 transition-colors">
+                                    <div class="flex items-center gap-4">
+                                        <div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center method-icon text-slate-500">
+                                            <img src="https://upload.wikimedia.org/wikipedia/commons/e/e1/UPI-Logo-vector.svg" alt="UPI" class="h-4 opacity-80 mix-blend-multiply">
+                                        </div>
+                                        <div>
+                                            <h4 class="font-semibold text-slate-800 text-sm">UPI</h4>
+                                            <p class="text-xs text-slate-500">Pay via GPay, PhonePe, Paytm</p>
+                                        </div>
+                                    </div>
+                                    <span class="w-4 h-4 rounded-full border border-slate-300 flex items-center justify-center">
+                                        <span class="w-2 h-2 rounded-full bg-indigo-600 opacity-0 check-indicator"></span>
+                                    </span>
+                                </div>
+                            </label>
+
+                            <!-- Credit/Debit Card -->
+                            <label class="cursor-pointer block relative">
+                                <input type="radio" name="method" value="card" class="method-radio sr-only" onchange="showForm('card')">
+                                <div class="border border-slate-200 rounded-lg p-4 flex items-center justify-between hover:bg-slate-50 transition-colors">
+                                    <div class="flex items-center gap-4">
+                                        <div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center method-icon text-slate-500">
+                                            <i class="fas fa-credit-card text-lg"></i>
+                                        </div>
+                                        <div>
+                                            <h4 class="font-semibold text-slate-800 text-sm">Credit / Debit Card</h4>
+                                            <p class="text-xs text-slate-500">Visa, Mastercard, RuPay & more</p>
+                                        </div>
+                                    </div>
+                                    <span class="w-4 h-4 rounded-full border border-slate-300 flex items-center justify-center">
+                                        <span class="w-2 h-2 rounded-full bg-indigo-600 opacity-0 check-indicator"></span>
+                                    </span>
+                                </div>
+                            </label>
+
+                            <!-- Net Banking -->
+                            <label class="cursor-pointer block relative">
+                                <input type="radio" name="method" value="netbanking" class="method-radio sr-only" onchange="showForm('netbanking')">
+                                <div class="border border-slate-200 rounded-lg p-4 flex items-center justify-between hover:bg-slate-50 transition-colors">
+                                    <div class="flex items-center gap-4">
+                                        <div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center method-icon text-slate-500">
+                                            <i class="fas fa-university text-lg"></i>
+                                        </div>
+                                        <div>
+                                            <h4 class="font-semibold text-slate-800 text-sm">Net Banking</h4>
+                                            <p class="text-xs text-slate-500">All major Indian banks</p>
+                                        </div>
+                                    </div>
+                                    <span class="w-4 h-4 rounded-full border border-slate-300 flex items-center justify-center">
+                                        <span class="w-2 h-2 rounded-full bg-indigo-600 opacity-0 check-indicator"></span>
+                                    </span>
+                                </div>
+                            </label>
+
+                            <!-- QR Code -->
+                            <label class="cursor-pointer block relative">
+                                <input type="radio" name="method" value="qr" class="method-radio sr-only" onchange="showForm('qr')">
+                                <div class="border border-slate-200 rounded-lg p-4 flex items-center justify-between hover:bg-slate-50 transition-colors">
+                                    <div class="flex items-center gap-4">
+                                        <div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center method-icon text-slate-500">
+                                            <i class="fas fa-qrcode text-lg"></i>
+                                        </div>
+                                        <div>
+                                            <h4 class="font-semibold text-slate-800 text-sm">QR Code Payment</h4>
+                                            <p class="text-xs text-slate-500">Scan & Pay securely</p>
+                                        </div>
+                                    </div>
+                                    <span class="w-4 h-4 rounded-full border border-slate-300 flex items-center justify-center">
+                                        <span class="w-2 h-2 rounded-full bg-indigo-600 opacity-0 check-indicator"></span>
+                                    </span>
+                                </div>
+                            </label>
+                        </div>
+                    </section>
+                </div>
+
+                <!-- Right Column: 4️⃣ Payment Details Form & Summary -->
+                <div class="lg:w-5/12">
+                    <div class="bg-white rounded-2xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.1)] border border-slate-100 overflow-hidden sticky top-24">
+                        
+                        <!-- Order Summary Box -->
+                        <div class="bg-slate-50 border-b border-slate-100 p-6">
+                            <h3 class="text-sm font-bold text-slate-500 uppercase tracking-wider mb-4">Order Summary</h3>
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="text-slate-700 font-medium" id="summary-plan-name">Premium Plan</span>
+                                <span class="text-slate-700 font-semibold" id="summary-plan-price">₹199.00</span>
+                            </div>
+                            <div class="flex justify-between items-center mb-4 text-sm text-slate-500">
+                                <span>GST (18%)</span>
+                                <span id="summary-tax">₹35.82</span>
+                            </div>
+                            <div class="border-t border-slate-200 pt-4 flex justify-between items-center">
+                                <span class="font-bold text-slate-900">Total Amount</span>
+                                <span class="text-2xl font-black text-indigo-600" id="summary-total">₹234.82</span>
+                            </div>
+                        </div>
+
+                        <form class="p-6" onsubmit="event.preventDefault(); processPayment();">
+                            <!-- Dynamic Forms Container -->
+                            <div class="mb-6 min-h-[160px]">
+                                
+                                <!-- UPI Form -->
+                                <div id="form-upi" class="payment-form">
+                                    <label class="block text-sm font-medium text-slate-700 mb-2">Enter UPI ID</label>
+                                    <div class="relative">
+                                        <input type="text" placeholder="example@okhdfcbank" class="w-full border border-slate-300 rounded-lg pl-4 pr-10 py-3 text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-shadow bg-slate-50 focus:bg-white" required>
+                                        <i class="fas fa-at absolute right-4 top-3.5 text-slate-400"></i>
+                                    </div>
+                                    <p class="text-xs text-slate-500 mt-2"><i class="fas fa-shield-alt text-green-500 mr-1"></i> Securely encrypted by Payment Gateway</p>
+                                </div>
+
+                                <!-- Card Form -->
+                                <div id="form-card" class="payment-form hidden space-y-4">
+                                    <div>
+                                        <label class="block text-sm font-medium text-slate-700 mb-1">Card Number</label>
+                                        <div class="relative">
+                                            <input type="text" placeholder="0000 0000 0000 0000" maxlength="19" class="w-full border border-slate-300 rounded-lg pl-10 pr-4 py-3 text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-shadow bg-slate-50 focus:bg-white tracking-widest" required>
+                                            <i class="far fa-credit-card absolute left-4 top-3.5 text-slate-400"></i>
+                                        </div>
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label class="block text-sm font-medium text-slate-700 mb-1">Expiry Date</label>
+                                            <input type="text" placeholder="MM/YY" maxlength="5" class="w-full border border-slate-300 rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-shadow bg-slate-50 focus:bg-white text-center tracking-widest" required>
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-slate-700 mb-1">CVV</label>
+                                            <input type="password" placeholder="•••" maxlength="3" class="w-full border border-slate-300 rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-shadow bg-slate-50 focus:bg-white text-center tracking-widest" required>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Net Banking Form -->
+                                <div id="form-netbanking" class="payment-form hidden">
+                                    <label class="block text-sm font-medium text-slate-700 mb-2">Select your Bank</label>
+                                    <select class="w-full border border-slate-300 rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-shadow bg-slate-50 focus:bg-white appearance-none" required>
+                                        <option value="" disabled selected>Choose a bank...</option>
+                                        <option>HDFC Bank</option>
+                                        <option>State Bank of India</option>
+                                        <option>ICICI Bank</option>
+                                        <option>Axis Bank</option>
+                                        <option>Kotak Mahindra Bank</option>
+                                    </select>
+                                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-6 text-slate-500 mt-2">
+                                        <i class="fas fa-chevron-down text-xs"></i>
+                                    </div>
+                                </div>
+
+                                <!-- QR Code Form -->
+                                <div id="form-qr" class="payment-form hidden text-center">
+                                    <div class="bg-slate-100 p-4 rounded-xl inline-block mb-3 border border-slate-200 shadow-inner">
+                                        <!-- Real QR Code Image -->
+                                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=CityAndStateNewsPortalPayment" alt="UPI Scan QR Code" class="w-32 h-32 rounded-lg mix-blend-multiply border border-slate-200 p-1 bg-white">
+                                    </div>
+                                    <p class="text-sm font-semibold text-slate-700">Scan to pay <span id="qr-amount" class="text-indigo-600 font-bold">₹234.82</span></p>
+                                    <p class="text-xs text-slate-500 mt-1">Open any UPI app (GPay, PhonePe, Paytm) to scan and pay</p>
+                                </div>
+                            </div>
+
+                            <!-- 5️⃣ Proceed to Pay Button -->
+                            <button type="submit" id="pay-button" class="w-full bg-indigo-600 text-white font-bold text-lg rounded-xl py-4 shadow-[0_4px_14px_0_rgba(79,70,229,0.39)] hover:bg-indigo-700 hover:shadow-[0_6px_20px_rgba(79,70,229,0.23)] transform hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-center gap-2">
+                                Proceed to Payment <i class="fas fa-arrow-right"></i>
+                            </button>
+                            
+                            <!-- Security Trust Badges -->
+                            <div class="flex justify-center items-center gap-4 mt-6 text-slate-300 text-2xl filter grayscale opacity-60">
+                                <i class="fab fa-cc-visa hover:grayscale-0 transition-opacity cursor-pointer"></i>
+                                <i class="fab fa-cc-mastercard hover:grayscale-0 transition-opacity cursor-pointer"></i>
+                                <i class="fab fa-cc-amex hover:grayscale-0 transition-opacity cursor-pointer"></i>
+                                <div class="w-px h-6 bg-slate-200"></div>
+                                <i class="fas fa-lock text-sm"></i> <span class="text-[10px] font-bold tracking-widest uppercase">256-bit SSL</span>
+                            </div>
+                        </form>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <!-- 6️⃣ Payment Confirmation Modal (Hidden by default) -->
+    <div id="confirmation-modal" class="fixed inset-0 z-[100] flex items-center justify-center hidden">
+        <!-- Backdrop -->
+        <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onclick="closeModal()"></div>
+        
+        <!-- Modal Content -->
+        <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl z-10 p-8 transform scale-95 opacity-0 transition-all duration-300" id="modal-content">
+            <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <i class="fas fa-check text-4xl text-green-500"></i>
+            </div>
+            
+            <h2 class="text-2xl font-bold text-center text-slate-800 mb-2">Payment Successful!</h2>
+            <p class="text-center text-slate-500 mb-8 text-sm">Your premium subscription is now active.</p>
+            
+            <div class="bg-slate-50 rounded-xl p-5 mb-8 border border-slate-100">
+                <div class="flex justify-between items-center py-2 border-b border-slate-200 border-dashed">
+                    <span class="text-slate-500 text-xs uppercase font-bold tracking-wider">Transaction ID</span>
+                    <span class="font-mono text-slate-800 font-medium text-sm">TXN-98472910</span>
+                </div>
+                <div class="flex justify-between items-center py-2 border-b border-slate-200 border-dashed">
+                    <span class="text-slate-500 text-xs uppercase font-bold tracking-wider">Amount Paid</span>
+                    <span class="text-slate-800 font-bold text-sm" id="receipt-amount">₹234.82</span>
+                </div>
+                <div class="flex justify-between items-center py-2">
+                    <span class="text-slate-500 text-xs uppercase font-bold tracking-wider">Status</span>
+                    <span class="bg-green-100 text-green-700 font-bold text-[10px] px-2 py-0.5 rounded-full uppercase tracking-widest">Success</span>
+                </div>
+            </div>
+            
+            <button onclick="window.location.href='{% url 'user_dashboard' %}'" class="w-full bg-slate-900 text-white font-bold rounded-xl py-3.5 hover:bg-black transition-colors">
+                Return to Dashboard
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // CSS specific logic to handle the custom radio styling visually
+        document.querySelectorAll('.method-radio').forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                document.querySelectorAll('.method-radio + div .check-indicator').forEach(ind => {
+                    ind.classList.remove('opacity-100');
+                    ind.classList.add('opacity-0');
+                    ind.parentElement.classList.remove('border-indigo-500');
+                    ind.parentElement.classList.add('border-slate-300');
+                });
+                const indicator = e.target.nextElementSibling.querySelector('.check-indicator');
+                indicator.classList.remove('opacity-0');
+                indicator.classList.add('opacity-100');
+                indicator.parentElement.classList.remove('border-slate-300');
+                indicator.parentElement.classList.add('border-indigo-500');
+            });
+        });
+
+        // Toggle Payment Form Visibility
+        function showForm(methodId) {
+            document.querySelectorAll('.payment-form').forEach(el => {
+                el.classList.add('hidden');
+            });
+            document.getElementById('form-' + methodId).classList.remove('hidden');
+        }
+
+        // Update Total calculation
+        let currentTotal = 234.82; // Default Premium text
+        function updateTotal(basePrice, planName) {
+            const tax = basePrice * 0.18;
+            currentTotal = basePrice + tax;
+            
+            document.getElementById('summary-plan-name').innerText = planName;
+            document.getElementById('summary-plan-price').innerText = `₹${basePrice.toFixed(2)}`;
+            document.getElementById('summary-tax').innerText = `₹${tax.toFixed(2)}`;
+            
+            const totalStr = `₹${currentTotal.toFixed(2)}`;
+            document.getElementById('summary-total').innerText = totalStr;
+            document.getElementById('qr-amount').innerText = totalStr;
+            document.getElementById('receipt-amount').innerText = totalStr;
+            
+            // Re-style custom radio checks for plan selection
+            document.querySelectorAll('.payment-radio + div').forEach(div => {
+                div.classList.remove('border-indigo-500', 'bg-indigo-50', 'shadow-[0_0_15px_rgba(79,70,229,0.15)]');
+                div.classList.add('border-slate-200');
+                div.querySelector('.check-indicator').classList.replace('opacity-100', 'opacity-0');
+                div.querySelector('.check-indicator').parentElement.classList.replace('border-indigo-500', 'border-slate-300');
+            });
+
+            const checkedRadio = document.querySelector('.payment-radio:checked');
+            const targetDiv = checkedRadio.nextElementSibling;
+            targetDiv.classList.replace('border-slate-200', 'border-indigo-500');
+            targetDiv.classList.add('bg-indigo-50', 'shadow-[0_0_15px_rgba(79,70,229,0.15)]');
+            targetDiv.querySelector('.check-indicator').classList.replace('opacity-0', 'opacity-100');
+            targetDiv.querySelector('.check-indicator').parentElement.classList.replace('border-slate-300', 'border-indigo-500');
+        }
+
+        // Simulate Payment Processing & Confirmation
+        function processPayment() {
+            const btn = document.getElementById('pay-button');
+            const originalText = btn.innerHTML;
+            
+            // Loading state
+            btn.innerHTML = `<i class="fas fa-circle-notch fa-spin"></i> Processing...`;
+            btn.classList.add('opacity-80', 'cursor-not-allowed');
+            
+            // Simulate API Call delay 1.5s
+            setTimeout(() => {
+                btn.innerHTML = originalText;
+                btn.classList.remove('opacity-80', 'cursor-not-allowed');
+                
+                // Show modal
+                const modal = document.getElementById('confirmation-modal');
+                const modalContent = document.getElementById('modal-content');
+                modal.classList.remove('hidden');
+                
+                // Trigger animation
+                setTimeout(() => {
+                    modalContent.classList.remove('scale-95', 'opacity-0');
+                    modalContent.classList.add('scale-100', 'opacity-100');
+                }, 10);
+
+            }, 1500);
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('confirmation-modal');
+            const modalContent = document.getElementById('modal-content');
+            
+            modalContent.classList.remove('scale-100', 'opacity-100');
+            modalContent.classList.add('scale-95', 'opacity-0');
+            
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        }
+    </script>
+</body>
+</html>

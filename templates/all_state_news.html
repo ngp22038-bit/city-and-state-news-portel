@@ -1,0 +1,153 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}State News | The Daily Portal{% endblock %}
+
+{% block city_options %}{% for city in cities %}<option value="{{ city }}">{{ city }}</option>{% endfor %}{% endblock %}
+{% block state_options %}{% for state in states %}<option value="{{ state }}" {% if state == state_filter %}selected{% endif %}>{{ state }}</option>{% endfor %}{% endblock %}
+{% block cat_state %}active{% endblock %}
+
+{% block extra_head %}
+<style>
+.sn-page { max-width: var(--container); margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+.sn-hero {
+  background: linear-gradient(135deg, #0d1b2a 0%, #1b2d3e 100%);
+  border-radius: var(--radius-lg); padding: 2rem 2.5rem;
+  margin-bottom: 2rem; display: flex; align-items: center;
+  justify-content: space-between; gap: 1rem; flex-wrap: wrap;
+  box-shadow: var(--shadow-lg);
+}
+.sn-hero h1 { font-family: var(--font-serif); font-size: 2rem; font-weight: 900; color: #fff; margin: 0 0 .3rem; }
+.sn-hero p  { color: rgba(255,255,255,.5); font-size: .875rem; margin: 0; }
+.sn-count   { background: var(--red); color: #fff; font-size: 1rem; font-weight: 800; padding: .5rem 1.2rem; border-radius: 50px; white-space: nowrap; }
+
+.sn-filters { display: flex; gap: .75rem; flex-wrap: wrap; align-items: center; margin-bottom: 1.75rem; }
+.sn-search-wrap { position: relative; flex: 1; min-width: 200px; max-width: 340px; }
+.sn-search-wrap i { position: absolute; left: .85rem; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: .8rem; }
+.sn-search-wrap input { width: 100%; padding: .55rem .9rem .55rem 2.2rem; background: var(--bg-card); border: 1.5px solid var(--border); border-radius: var(--radius); font-size: .875rem; color: var(--text); font-family: var(--font-sans); margin: 0; }
+.sn-search-wrap input:focus { outline: none; border-color: var(--red); }
+.sn-select { padding: .55rem .9rem; background: var(--bg-card); border: 1.5px solid var(--border); border-radius: var(--radius); font-size: .875rem; color: var(--text); font-family: var(--font-sans); cursor: pointer; }
+.sn-select:focus { outline: none; border-color: var(--red); }
+.sn-btn { padding: .55rem 1.2rem; background: var(--navy); color: #fff; border: none; border-radius: var(--radius); font-size: .875rem; font-weight: 700; cursor: pointer; font-family: var(--font-sans); transition: background .2s; margin: 0; width: auto; }
+.sn-btn:hover { background: var(--red); transform: none; }
+.sn-btn.clear { background: transparent; color: var(--text-muted); border: 1.5px solid var(--border); }
+.sn-btn.clear:hover { border-color: var(--red); color: var(--red); background: transparent; }
+
+.sn-chips { display: flex; gap: .5rem; flex-wrap: wrap; margin-bottom: 1.75rem; }
+.sn-chip { padding: .35rem .9rem; border-radius: 99px; font-size: .78rem; font-weight: 700; border: 1.5px solid var(--border); color: var(--text-muted); text-decoration: none; background: var(--bg-card); transition: all .15s; }
+.sn-chip:hover, .sn-chip.active { background: var(--red); color: #fff; border-color: var(--red); }
+
+.sn-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 1.5rem; }
+@media (max-width: 900px) { .sn-grid { grid-template-columns: repeat(2,1fr); } }
+@media (max-width: 560px) { .sn-grid { grid-template-columns: 1fr; } }
+
+.sn-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--shadow-sm); transition: transform .2s, box-shadow .2s; display: flex; flex-direction: column; }
+.sn-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+.sn-card-img { width: 100%; height: 185px; object-fit: cover; background: var(--bg); display: block; }
+.sn-card-img-ph { width: 100%; height: 185px; background: linear-gradient(135deg, rgba(13,27,42,.08), rgba(230,57,70,.08)); display: flex; align-items: center; justify-content: center; font-size: 2.5rem; }
+.sn-card-body { padding: 1.1rem 1.25rem 1.25rem; flex: 1; display: flex; flex-direction: column; }
+.sn-card-meta { display: flex; align-items: center; gap: .5rem; font-size: .72rem; color: var(--text-muted); margin-bottom: .6rem; flex-wrap: wrap; }
+.sn-state-badge { background: rgba(13,27,42,.08); color: var(--navy); padding: 2px 9px; border-radius: 99px; font-size: .68rem; font-weight: 700; }
+.sn-cat-badge   { background: rgba(230,57,70,.1); color: var(--red); padding: 2px 9px; border-radius: 99px; font-size: .68rem; font-weight: 700; }
+.sn-card-title { font-family: var(--font-serif); font-size: 1.05rem; font-weight: 800; color: var(--text); line-height: 1.4; margin-bottom: .5rem; text-decoration: none; display: block; }
+.sn-card-title:hover { color: var(--red); }
+.sn-card-excerpt { font-size: .83rem; color: var(--text-muted); line-height: 1.6; flex: 1; }
+.sn-card-footer { margin-top: 1rem; padding-top: .75rem; border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+.sn-read-btn { font-size: .75rem; font-weight: 700; color: var(--red); text-decoration: none; display: flex; align-items: center; gap: 4px; }
+.sn-read-btn:hover { color: var(--red-dark); }
+
+.sn-empty { grid-column: 1/-1; text-align: center; padding: 5rem 1rem; color: var(--text-muted); }
+.sn-empty i { font-size: 3.5rem; opacity: .15; display: block; margin-bottom: 1rem; }
+
+.sn-pagination { display: flex; justify-content: center; gap: .4rem; margin-top: 2.5rem; flex-wrap: wrap; }
+.pg-btn { min-width: 36px; height: 36px; padding: 0 .7rem; display: inline-flex; align-items: center; justify-content: center; border: 1.5px solid var(--border); border-radius: var(--radius-sm); font-size: .85rem; font-weight: 600; color: var(--text-muted); text-decoration: none; transition: all .15s; background: var(--bg-card); }
+.pg-btn:hover { border-color: var(--red); color: var(--red); }
+.pg-btn.active { background: var(--red); color: #fff; border-color: var(--red); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="sn-page">
+
+  <!-- Hero -->
+  <div class="sn-hero">
+    <div>
+      <h1>🗺️ State News</h1>
+      <p>Latest news from states across India</p>
+    </div>
+    <div class="sn-count">{{ total }} Article{{ total|pluralize }}</div>
+  </div>
+
+  <!-- Filter bar -->
+  <form method="get" class="sn-filters">
+    <div class="sn-search-wrap">
+      <i class="fas fa-search"></i>
+      <input type="text" name="q" value="{{ q }}" placeholder="Search state news…">
+    </div>
+    <select name="state" class="sn-select" onchange="this.form.submit()">
+      <option value="">All States</option>
+      {% for state in states %}
+      <option value="{{ state }}" {% if state == state_filter %}selected{% endif %}>{{ state }}</option>
+      {% endfor %}
+    </select>
+    <button type="submit" class="sn-btn"><i class="fas fa-filter"></i> Filter</button>
+    {% if state_filter or q %}
+    <a href="{% url 'all_state_news' %}" class="sn-btn clear"><i class="fas fa-xmark"></i> Clear</a>
+    {% endif %}
+  </form>
+
+  <!-- State chips -->
+  <div class="sn-chips">
+    <a href="{% url 'all_state_news' %}" class="sn-chip {% if not state_filter %}active{% endif %}">All</a>
+    {% for state in states %}
+    <a href="?state={{ state }}" class="sn-chip {% if state == state_filter %}active{% endif %}">{{ state }}</a>
+    {% endfor %}
+  </div>
+
+  <!-- Grid -->
+  <div class="sn-grid">
+    {% for article in articles %}
+    <div class="sn-card">
+      {% with article.media.first as m %}
+        {% if m and m.media_upload %}
+          <img src="{{ m.media_upload.url }}" alt="{{ article.title }}" class="sn-card-img">
+        {% else %}
+          <div class="sn-card-img-ph">🗺️</div>
+        {% endif %}
+      {% endwith %}
+      <div class="sn-card-body">
+        <div class="sn-card-meta">
+          <span class="sn-state-badge"><i class="fas fa-map"></i> {{ article.state }}</span>
+          {% if article.category %}<span class="sn-cat-badge">{{ article.category }}</span>{% endif %}
+          <span>{{ article.created_at|date:"M d, Y" }}</span>
+        </div>
+        <a href="{% url 'article_detail' article.id %}" class="sn-card-title">{{ article.title }}</a>
+        <p class="sn-card-excerpt">{{ article.content|truncatewords:20 }}</p>
+        <div class="sn-card-footer">
+          <span style="font-size:.75rem;color:var(--text-muted);"><i class="fas fa-eye" style="font-size:.65rem;"></i> {{ article.views_count }}</span>
+          <a href="{% url 'article_detail' article.id %}" class="sn-read-btn">Read <i class="fas fa-arrow-right" style="font-size:.65rem;"></i></a>
+        </div>
+      </div>
+    </div>
+    {% empty %}
+    <div class="sn-empty">
+      <i class="fas fa-map"></i>
+      <p style="font-weight:700;font-size:1.1rem;margin-bottom:.4rem;">No state news found</p>
+      <p style="font-size:.875rem;">{% if state_filter %}No articles for "{{ state_filter }}".{% else %}No state articles yet.{% endif %}</p>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Pagination -->
+  {% if articles.paginator.num_pages > 1 %}
+  <div class="sn-pagination">
+    {% if articles.has_previous %}<a href="?page={{ articles.previous_page_number }}&state={{ state_filter }}&q={{ q }}" class="pg-btn"><i class="fas fa-chevron-left" style="font-size:.7rem;"></i></a>{% endif %}
+    {% for num in articles.paginator.page_range %}
+      {% if articles.number == num %}<span class="pg-btn active">{{ num }}</span>
+      {% elif num > articles.number|add:"-3" and num < articles.number|add:"3" %}<a href="?page={{ num }}&state={{ state_filter }}&q={{ q }}" class="pg-btn">{{ num }}</a>{% endif %}
+    {% endfor %}
+    {% if articles.has_next %}<a href="?page={{ articles.next_page_number }}&state={{ state_filter }}&q={{ q }}" class="pg-btn"><i class="fas fa-chevron-right" style="font-size:.7rem;"></i></a>{% endif %}
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

@@ -1,0 +1,155 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Report Fake News | The Daily Portal{% endblock %}
+
+{% block content %}
+<style>
+    .report-container {
+        max-width: 600px;
+        margin: 4rem auto;
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 2rem;
+        box-shadow: var(--shadow);
+    }
+
+    .report-title {
+        font-family: var(--font-serif);
+        font-size: 2rem;
+        margin-bottom: 1rem;
+        color: var(--text-color);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .report-title i {
+        color: #dc3545;
+    }
+
+    .article-summary {
+        background: rgba(0,0,0,0.02);
+        padding: 1.5rem;
+        border-radius: 8px;
+        margin-bottom: 2rem;
+        border-left: 4px solid var(--accent);
+    }
+
+    .article-summary h3 {
+        margin: 0 0 10px 0;
+        font-size: 1.2rem;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+        color: var(--text-color);
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--bg-body);
+        color: var(--text-color);
+        font-family: inherit;
+        font-size: 1rem;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: var(--accent);
+    }
+
+    .warning-text {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        margin-top: 5px;
+        display: block;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 15px;
+        margin-top: 2rem;
+    }
+
+    .btn-submit {
+        background: #dc3545;
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        flex: 1;
+        transition: background 0.2s;
+    }
+
+    .btn-submit:hover {
+        background: #c82333;
+    }
+
+    .btn-cancel {
+        background: transparent;
+        color: var(--text-color);
+        border: 1px solid var(--border);
+        padding: 12px 24px;
+        border-radius: 8px;
+        font-weight: 600;
+        text-decoration: none;
+        text-align: center;
+        flex: 1;
+        transition: background 0.2s;
+    }
+
+    .btn-cancel:hover {
+        background: rgba(0,0,0,0.05);
+    }
+
+    [data-theme="dark"] .btn-cancel:hover {
+        background: rgba(255,255,255,0.05);
+    }
+</style>
+
+<div class="report-container">
+    <h1 class="report-title">
+        <span style="font-size: 2.5rem; line-height: 1;">⚠️</span> Report Fake News
+    </h1>
+    
+    <p style="color: var(--text-muted); margin-bottom: 2rem;">
+        Help us keep our community informed with accurate information. If you believe this article contains false, misleading, or fabricated information, please report it below.
+    </p>
+
+    <div class="article-summary">
+        <span style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px;">Target Article</span>
+        <h3>{{ article.title }}</h3>
+        <p style="font-size: 0.9rem; color: var(--text-muted); margin: 0;">
+            Published: {{ article.created_at|date:"M d, Y" }} | Author: {{ article.author.first_name|default:article.author.email }}
+        </p>
+    </div>
+
+    <form method="POST">
+        {% csrf_token %}
+        
+        <div class="form-group">
+            <label class="form-label" for="reason">Why are you reporting this article?</label>
+            <textarea id="reason" name="reason" rows="5" class="form-control" placeholder="Please provide specific details about what information is false or misleading..." required></textarea>
+            <span class="warning-text">Your report will be reviewed by our editorial team. False reports may result in account suspension.</span>
+        </div>
+
+        <div class="action-buttons">
+            <a href="{% url 'user_dashboard' %}" class="btn-cancel">Cancel</a>
+            <button type="submit" class="btn-submit">Submit Report</button>
+        </div>
+    </form>
+</div>
+{% endblock %}
