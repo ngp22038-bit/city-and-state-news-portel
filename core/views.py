@@ -119,8 +119,11 @@ def signup_view(request):
     if request.method == "POST" and form.is_valid():
         user = form.save()
         login(request, user)
-        messages.success(request, "Account created successfully!")
-        return redirect('owner_dashboard' if user.role == "owner" else 'user_dashboard')
+        messages.success(request, "Account created successfully! Choose a subscription plan to continue.")
+        # Reporters go straight to their dashboard; readers pick a plan first
+        if user.role == "owner":
+            return redirect('owner_dashboard')
+        return redirect('add_payment')
     return render(request, 'core/signup.html', {'form': form})
 
 

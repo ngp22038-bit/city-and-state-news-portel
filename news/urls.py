@@ -5,13 +5,13 @@ from .views import (owner_dashboard, user_dashboard, add_article, add_payment,
                     analytics, admin_analytics_dashboard,
                     report_fake_news, bookmark_article, reader_search,
                     live_news, live_news_api, category_view,
-                    all_city_news, all_state_news, search_articles)
+                    all_city_news, all_state_news, search_articles,
+                    create_razorpay_order, payment_success, payment_callback)
 
 urlpatterns = [
     path('owner/', owner_dashboard, name='owner_dashboard'),
     path('user/', user_dashboard, name='user_dashboard'),
 
-    # Redirects for old/mistyped URLs
     path('owner_dashboard/', RedirectView.as_view(pattern_name='owner_dashboard', permanent=False)),
     path('user_dashboard/',  RedirectView.as_view(pattern_name='user_dashboard',  permanent=False)),
 
@@ -19,6 +19,9 @@ urlpatterns = [
     path('edit-article/<int:article_id>/', edit_article, name='edit_article'),
     path('pin-article/<int:article_id>/', pin_article, name='pin_article'),
     path('add-payment/', add_payment, name='add_payment'),
+    path('create-razorpay-order/', create_razorpay_order, name='create_razorpay_order'),
+    path('payment-success/', payment_success, name='payment_success'),
+    path('payment-callback/', payment_callback, name='payment_callback'),
     path('manage-articles/', manage_articles, name='manage_articles'),
     path('delete-article/<int:article_id>/', delete_article, name='delete_article'),
     path('analytics/', analytics, name='analytics'),

@@ -7,7 +7,10 @@ from django.core.cache import cache
 from core.models import User
 from .models import Article, FakeNewsReport, AdPayment, Reaction, Comment, Bookmark, ReadingHistory
 import urllib.request, json, urllib.parse
-
+from django.conf import settings
+import razorpay
+import traceback
+from django.views.decorators.csrf import csrf_exempt
 def owner_dashboard(request):
     cities = Article.objects.values_list('city',  flat=True).distinct().exclude(city__isnull=True).exclude(city='')
     states = Article.objects.values_list('state', flat=True).distinct().exclude(state__isnull=True).exclude(state='')
@@ -266,6 +269,139 @@ def add_payment(request):
         form = PaymentForm()
     
     return render(request, 'add_payment.html', {'form': form})
+
+@csrf_exempt
+def create_razorpay_order(request):
+    """Creates a Razorpay Order and returns the order_id for checkout popup"""
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            amount = float(data.get('amount', 0))
+            if amount <= 0:
+                return JsonResponse({'error': 'Invalid amount'}, status=400)
+
+            # Amount in paise (multiply by 100)
+            amount_in_paise = int(amount * 100)
+
+            client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+            payment_data = {
+                "amount": amount_in_paise,
+                "currency": "INR",
+                "receipt": f"rcpt_{request.user.id if request.user.is_authenticated else 'guest'}",
+            }
+            order = client.order.create(data=payment_data)
+            return JsonResponse({
+                'order_id': order['id'],
+                'amount':   amount_in_paise,
+                'key':      settings.RAZORPAY_KEY_ID,
+            })
+        except Exception as e:
+            traceback.print_exc()
+            return JsonResponse({'error': str(e)}, status=500)
+    return JsonResponse({'error': 'Invalid request'}, status=400)
+
+
+def payment_success(request):
+    """Verify Razorpay signature and save subscription (AJAX call)."""
+    if request.method == 'POST':
+        try:
+            data        = json.loads(request.body)
+            payment_id  = data.get('razorpay_payment_id', '')
+            order_id    = data.get('razorpay_order_id', '')
+            signature   = data.get('razorpay_signature', '')
+            plan_name   = data.get('plan_name', 'Premium')
+            amount      = data.get('amount', 0)
+
+            client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+            client.utility.verify_payment_signature({
+                'razorpay_order_id':   order_id,
+                'razorpay_payment_id': payment_id,
+                'razorpay_signature':  signature,
+            })
+
+            if request.user.is_authenticated:
+                from django.utils import timezone
+                import datetime
+                from .models import Subscription
+                Subscription.objects.update_or_create(
+                    user=request.user,
+                    defaults={
+                        'plan':                plan_name,
+                        'amount':              amount,
+                        'razorpay_order_id':   order_id,
+                        'razorpay_payment_id': payment_id,
+                        'status':              'Active',
+                        'expires_at':          timezone.now() + datetime.timedelta(days=30),
+                    }
+                )
+
+            return JsonResponse({'status': 'Payment Successful', 'payment_id': payment_id})
+
+        except razorpay.errors.SignatureVerificationError:
+            return JsonResponse({'error': 'Signature verification failed'}, status=400)
+        except Exception as e:
+            traceback.print_exc()
+            return JsonResponse({'error': str(e)}, status=500)
+    return JsonResponse({'error': 'Invalid request'}, status=400)
+
+
+@csrf_exempt  # Razorpay POSTs here after 3DS/OTP — no browser CSRF cookie available
+def payment_callback(request):
+    """
+    Razorpay redirects the browser here (POST) after 3DS / OTP authentication.
+    Verifies signature, saves subscription, renders success page.
+    """
+    if request.method == 'POST':
+        try:
+            payment_id = request.POST.get('razorpay_payment_id', '')
+            order_id   = request.POST.get('razorpay_order_id', '')
+            signature  = request.POST.get('razorpay_signature', '')
+            plan_name  = request.GET.get('plan', 'Premium')
+            amount     = request.GET.get('amount', '0')
+
+            client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+            client.utility.verify_payment_signature({
+                'razorpay_order_id':   order_id,
+                'razorpay_payment_id': payment_id,
+                'razorpay_signature':  signature,
+            })
+
+            if request.user.is_authenticated:
+                from django.utils import timezone
+                import datetime
+                from .models import Subscription
+                Subscription.objects.update_or_create(
+                    user=request.user,
+                    defaults={
+                        'plan':                plan_name,
+                        'amount':              float(amount),
+                        'razorpay_order_id':   order_id,
+                        'razorpay_payment_id': payment_id,
+                        'status':              'Active',
+                        'expires_at':          timezone.now() + datetime.timedelta(days=30),
+                    }
+                )
+
+            return render(request, 'payment_done.html', {
+                'payment_id': payment_id,
+                'plan':       plan_name,
+                'amount':     amount,
+                'success':    True,
+            })
+
+        except razorpay.errors.SignatureVerificationError:
+            return render(request, 'payment_done.html', {
+                'success': False,
+                'error':   'Payment verification failed. Please contact support.',
+            })
+        except Exception as e:
+            traceback.print_exc()
+            return render(request, 'payment_done.html', {
+                'success': False,
+                'error':   str(e),
+            })
+
+    return redirect('add_payment')
 
 def manage_articles(request):
     from django.core.paginator import Paginator

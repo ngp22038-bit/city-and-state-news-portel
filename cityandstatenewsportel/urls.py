@@ -3,6 +3,7 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from core.views import signup_view, login_view, home_view, dashboard_view, logout_view, city_view, state_view, article_detail_view
+from news.views import add_payment
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -23,5 +24,5 @@ urlpatterns = [
 
     # News App
     path('news/', include('news.urls')),
-    
+
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

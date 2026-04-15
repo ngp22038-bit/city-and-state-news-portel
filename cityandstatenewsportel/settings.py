@@ -117,3 +117,8 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'rayanideep112@gmail.com'
 EMAIL_HOST_PASSWORD = 'kcki hwvk ptij apqu'
+
+# ── RAZORPAY SETTINGS ──
+# Get these from https://dashboard.razorpay.com/ under Settings -> API Keys (Test Mode)
+RAZORPAY_KEY_ID = 'rzp_test_Sde7pJWFFQTiLB'
+RAZORPAY_KEY_SECRET = 'PjN3pA7sg6eLEQnZVpeK2Kd6'

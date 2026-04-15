@@ -144,3 +144,27 @@ class AdPayment(models.Model):
 
     def __str__(self):
         return f"Ad: {self.ad_title} by {self.advertiser.email}"
+
+
+class Subscription(models.Model):
+    PLAN_CHOICES = (
+        ('Basic', 'Basic Plan - ₹99/month'),
+        ('Premium', 'Premium Plan - ₹199/month'),
+    )
+    STATUS_CHOICES = (
+        ('Active', 'Active'),
+        ('Expired', 'Expired'),
+        ('Cancelled', 'Cancelled'),
+    )
+
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='subscription')
+    plan = models.CharField(max_length=20, choices=PLAN_CHOICES)
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    razorpay_order_id = models.CharField(max_length=100, blank=True, null=True)
+    razorpay_payment_id = models.CharField(max_length=100, blank=True, null=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Active')
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField(null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.user.email} - {self.plan} ({self.status})"
